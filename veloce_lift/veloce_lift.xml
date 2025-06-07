@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4"
+      main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence name="LiftOperationSequence">
+      <moveForks fork_angle="0"
+                 fork_speed="100"
+                 fork_accel="100"
+                 _description="Move the forks up (to a desired angle)."/>
+      <moveTelescope telescope_position="0"
+                     telescope_speed="1000"
+                     telescope_accel="600"/>
+      <AsyncSequence>
+        <moveTurntable turntable_position="90"
+                       turntable_speed="100"
+                       turntable_accel="200"/>
+        <moveLift lift_position="0"
+                  lift_speed="600"
+                  lift_accel="1000"/>
+      </AsyncSequence>
+      <TriggerScanner/>
+      <Fallback name="SearchForTote">
+        <Sequence name="TryPosition1">
+          <moveLift lift_position="0"
+                    lift_speed="600"
+                    lift_accel="1000"/>
+          <CheckForTote/>
+        </Sequence>
+        <Sequence name="TryPosition2">
+          <moveLift lift_position="0"
+                    lift_speed="600"
+                    lift_accel="1000"/>
+          <CheckForTote/>
+        </Sequence>
+        <ReportFailure/>
+      </Fallback>
+      <extendTelescope extendTelescope="0">
+        <moveTelescope telescope_position="970"
+                       telescope_speed="1000"
+                       telescope_accel="600"/>
+        <moveForks fork_angle="45"
+                   fork_speed="100"
+                   fork_accel="100"
+                   _description="Move the forks down (to a desired angle).&#10;Typically change this depending on the article type."/>
+        <moveTelescope telescope_position="0"
+                       telescope_speed="1000"
+                       telescope_accel="600"/>
+      </extendTelescope>
+    </Sequence>
+  </BehaviorTree>
+
+  <!-- Node Model Descriptions -->
+  <TreeNodesModel>
+    <Condition ID="CheckForTote"/>
+    <Action ID="ReportFailure"/>
+    <Action ID="TriggerScanner"/>
+    <Control ID="extendTelescope"
+             editable="true">
+      <input_port name="extendTelescope"
+                  default="0"/>
+    </Control>
+    <Action ID="moveForks"
+            editable="true">
+      <input_port name="fork_angle"
+                  default="0">Fork Angle in Degrees</input_port>
+      <input_port name="fork_speed"
+                  default="100">Fork Speed in counts/s</input_port>
+      <input_port name="fork_accel"
+                  default="100">Fork Accel in mm/s2</input_port>
+    </Action>
+    <Action ID="moveLift"
+            editable="true">
+      <input_port name="lift_position"
+                  default="0">Telescope Position in mm</input_port>
+      <input_port name="lift_speed"
+                  default="600">Telescope Speed in mm/s</input_port>
+      <input_port name="lift_accel"
+                  default="1000">Telescope Accel in mm/s2</input_port>
+    </Action>
+    <Action ID="moveTelescope"
+            editable="true">
+      <input_port name="telescope_position"
+                  default="0">Telescope Position in mm</input_port>
+      <input_port name="telescope_speed"
+                  default="1000">Telescope Speed in mm/s</input_port>
+      <input_port name="telescope_accel"
+                  default="600">Telescope Accel in mm/s2</input_port>
+    </Action>
+    <Action ID="moveTurntable"
+            editable="true">
+      <input_port name="turntable_position"
+                  default="90">Turntable Position in degrees</input_port>
+      <input_port name="turntable_speed"
+                  default="100">Telescope Speed in rad/s</input_port>
+      <input_port name="turntable_accel"
+                  default="200">Telescope Accel in rad/s2</input_port>
+    </Action>
+  </TreeNodesModel>
+
+</root>
