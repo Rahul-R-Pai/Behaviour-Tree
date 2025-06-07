@@ -1,0 +1,29 @@
+<root BTCPP_format="4" >
+    <BehaviorTree ID="Maintree" plugin="libyour_custom_nodes.so">
+        <Fallback name="root_fallback">
+            <Sequence name="robot_function">
+                <Fallback name="find_ball_fallback">
+                    <Action ID="BallFound" name="ball_found"/>
+                    <Action ID="FindBall" name="find_ball" ball_location="{location}"/>
+                </Fallback>
+                <Fallback name="approach_ball_fallback">
+                    <Action ID="BallClose" name="ball_close" ball_location="{location}"/>
+                    <Action ID="ApproachBall" name="approach_ball" ball_location="{location}"/>
+                </Fallback>
+                <Fallback name="grasp_ball_fallback">
+                    <Action ID="BallGrasped" name="ball_grasped"/>
+                    <Action ID="GraspBall" name="grasp_ball"/>
+                </Fallback>
+                <Fallback name="approach_bin_fallback">
+                    <Action ID="BinClose" name="bin_close"/>
+                    <Action ID="ApproachBin" name="approach_bin"/>
+                </Fallback>
+                <Fallback name="place_ball_fallback">
+                    <Action ID="BallPlaced" name="ball_placed"/>
+                    <Action ID="PlaceBall" name="place_ball"/>
+                </Fallback>
+            </Sequence>
+            <Action ID="AskForHelp" name="ask_for_help"/>
+        </Fallback>
+    </BehaviorTree>
+</root>

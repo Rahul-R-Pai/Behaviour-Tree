@@ -1,0 +1,3 @@
+/workspace/bt_demo/simple_bt/build/CMakeFiles/bt_simple_pick.dir
+/workspace/bt_demo/simple_bt/build/CMakeFiles/edit_cache.dir
+/workspace/bt_demo/simple_bt/build/CMakeFiles/rebuild_cache.dir
