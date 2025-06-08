@@ -2,44 +2,88 @@
 <root BTCPP_format="4"
       main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
-    <Sequence name="PickCycle">
-      <!-- Safety and Mode Checks -->
-      <CheckBool name="CheckSTO" variable="STO" expected_value="false"/>
-      <CheckEqual name="CheckMode888" variable="Input_cmd_moc" value="888"/>
-      <CheckBool name="CheckPICKCommand" variable="PICK" expected_value="true"/>
-      <CheckIntEqual name="CheckT2Equals8" variable="t2" value="8"/>
-
-      <!-- Begin Pick Steps -->
-      <Fallback name="PickStepSelector">
-        <!-- Pick Step 0 -->
-        <Sequence name="PickStep0">
-          <CheckIntEqual name="CheckPickStep0" variable="PICKSTEP" value="0"/>
-          <Action name="SetTurnMode" variable="Turn_mode" value="1"/>
-          <Action name="StartPickStep1"/>
+    <Sequence name="LiftOperationSequence">
+      <moveForks fork_angle="0"
+                 fork_speed="100"
+                 fork_accel="100"
+                 _description="Move the forks up (to a desired angle)."/>
+      <moveTelescope telescope_position="0"
+                     telescope_speed="1000"
+                     telescope_accel="600"/>
+      <!-- <AsyncSequence> -->
+        <moveTurntable turntable_position="90"
+                       turntable_speed="100"
+                       turntable_accel="200"/>
+        <moveLift lift_position="0"
+                  lift_speed="600"
+                  lift_accel="1000"/>
+      <!-- </AsyncSequence> -->
+      <TriggerScanner/>
+      <Fallback name="SearchForTote">
+        <Sequence name="TryPosition1">
+          <moveLift lift_position="0"
+                    lift_speed="600"
+                    lift_accel="1000"/>
+          <CheckForTote/>
         </Sequence>
-
-        <!-- Pick Step 1 -->
-        <Sequence name="PickStep1">
-          <CheckIntEqual name="CheckPickStep1" variable="PICKSTEP" value="1"/>
-          <CheckBool name="CheckTelescopeNotStalled" variable="Telescope_stalled" expected_value="false"/>
-          <Action name="SetTurnCorrectionStep" variable="Turn_Corr_Step" value="1"/>
-          <Action name="StartPickStep2"/>
+        <Sequence name="TryPosition2">
+          <moveLift lift_position="0"
+                    lift_speed="600"
+                    lift_accel="1000"/>
+          <CheckForTote/>
         </Sequence>
-
-        <!-- Additional steps (abbreviated for brevity) -->
-        <Sequence name="PickStep2">
-          <CheckIntEqual name="CheckPickStep2" variable="PICKSTEP" value="2"/>
-          <CheckBool name="CheckTelescopeNotStalled" variable="Telescope_stalled" expected_value="false"/>
-          <Action name="SetTurnCorrectionStep2" variable="Turn_Corr_Step" value="2"/>
-          <Action name="SetRackCycle" variable="RACK_CYCLE" value="1"/>
-          <Action name="StartPickStep3"/>
-        </Sequence>
-
-        <!-- Pick Completion -->
-        <Sequence name="PickComplete">
-          <CheckIntEqual name="CheckPickStepComplete" variable="PICKSTEP" value="12"/>
-          <Action name="SetPickComplete" variable="pick_comp" value="true"/>
-        </Sequence>
+        <ReportFailure/>
       </Fallback>
-
+      <extendTelescope extendTelescope="0">
+        <moveTelescope telescope_position="970"
+                       telescope_speed="1000"
+                       telescope_accel="600"/>
+        <moveForks fork_angle="45"
+                   fork_speed="100"
+                   fork_accel="100"
+                   _description="Move the forks down (to a desired angle).&#10;Typically change this depending on the article type."/>
+        <moveTelescope telescope_position="0"
+                       telescope_speed="1000"
+                       telescope_accel="600"/>
+      </extendTelescope>
     </Sequence>
+  </BehaviorTree>
+
+  <!-- Node Model Descriptions -->
+  <TreeNodesModel>
+    <Condition ID="CheckForTote"/>
+    <Condition ID="CheckSTO"/>
+    <Condition ID="RackSensors"/>
+    <Condition ID="TelescopeHomeSensors"/>
+    <Condition ID="BinClearSensors"/>
+    <Condition ID="BinPresenceSensors"/>
+    <Condition ID="TurntableSensor"/>
+    <Action ID="ReportFailure"/>
+    <Action ID="TriggerScanner"/>
+    <Control ID="extendTelescope"
+             editable="true">
+      <input_port name="extendTelescope"
+                  default="0"/>
+    </Control>
+    <Action ID="moveForks"
+            editable="true">
+      <input_port name="fork_angle"
+                  default="0">Fork Angle in Degrees</input_port>
+    </Action>
+    <Action ID="moveLift"
+            editable="true">
+      <input_port name="lift_position"
+                  default="0">Telescope Position in mm</input_port>
+    </Action>
+    <Action ID="moveTelescope"
+            editable="true">
+      <input_port name="telescope_position"
+                  default="0">Telescope Position in mm</input_port>
+    </Action>
+    <Action ID="moveTurntable"
+            editable="true">
+      <input_port name="turntable_position"
+                  default="90">Turntable Position in degrees</input_port>
+    </Action>
+  </TreeNodesModel>
+</root>
