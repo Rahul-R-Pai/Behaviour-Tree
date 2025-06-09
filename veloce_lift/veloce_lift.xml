@@ -1,71 +1,78 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<root BTCPP_format="4"
-      main_tree_to_execute="MainTree">
-  <BehaviorTree ID="MainTree">
-    <Sequence name="LiftOperationSequence">
-      <moveForks fork_angle="0"
-                 _description="Move the forks up (to a desired angle)."/>
-      <moveTelescope telescope_position="0"/>
-      <!-- <AsyncSequence> -->
-        <moveTurntable turntable_position="90"/>
-        <moveLift lift_position="0"/>
-      <!-- </AsyncSequence> -->
-      <TriggerScanner/>
-      <Fallback name="SearchForTote">
-        <Sequence name="TryPosition1">
-          <moveLift lift_position="0"/>
-          <CheckForTote/>
+<?xml version="1.0"?>
+<root main_tree_to_execute="MainTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="MainTree">
+        <Sequence name="OperationCycle">
+            <Action ID="moveForks" editable="" fork_angle="0"/>
+            <Action ID="moveTelescope" editable="" telescope_position="0"/>
+            <Fallback>
+                <Sequence>
+                    <Inverter>
+                        <Condition ID="BinPresenceSensors"/>
+                    </Inverter>
+                    <Condition ID="TelescopeHomeSensors"/>
+                    <Condition ID="BinClearSensors"/>
+                    <Condition ID="TurntableDirection" turntable_direction="0"/>
+                </Sequence>
+            </Fallback>
+            <Action ID="moveTurntable" editable="" turntable_position="90"/>
+            <Action ID="moveLift" editable="" lift_position="0"/>
+            <Action ID="TriggerScanner"/>
+            <Fallback name="SearchForTote">
+                <Sequence name="TryPosition1">
+                    <Action ID="moveLift" editable="" lift_position="0"/>
+                    <Condition ID="CheckForTote"/>
+                </Sequence>
+                <Sequence name="TryPosition2">
+                    <Action ID="moveLift" editable="" lift_position="0"/>
+                    <Condition ID="CheckForTote"/>
+                </Sequence>
+                <Action ID="ReportFailure"/>
+            </Fallback>
+            <Control ID="extendTelescope" editable="" extendTelescope="0">
+                <Action ID="moveTelescope" editable="" telescope_position="970"/>
+                <Action ID="moveForks" editable="" fork_angle="45"/>
+                <Action ID="moveTelescope" editable="" telescope_position="0"/>
+            </Control>
         </Sequence>
-        <Sequence name="TryPosition2">
-          <moveLift lift_position="0"/>
-          <CheckForTote/>
-        </Sequence>
-        <ReportFailure/>
-      </Fallback>
-      <extendTelescope extendTelescope="0">
-        <moveTelescope telescope_position="970"/>
-        <moveForks fork_angle="45"
-                   _description="Move the forks down"/>
-        <moveTelescope telescope_position="0"/>
-      </extendTelescope>
-    </Sequence>
-  </BehaviorTree>
-
-  <!-- Node Model Descriptions -->
-  <TreeNodesModel>
-    <Condition ID="CheckForTote"/>
-    <Condition ID="CheckSTO"/>
-    <Condition ID="RackSensors"/>
-    <Condition ID="TelescopeHomeSensors"/>
-    <Condition ID="BinClearSensors"/>
-    <Condition ID="BinPresenceSensors"/>
-    <Condition ID="TurntableSensor"/>
-    <Action ID="ReportFailure"/>
-    <Action ID="TriggerScanner"/>
-    <Control ID="extendTelescope"
-             editable="true">
-      <input_port name="extendTelescope"
-                  default="0"/>
-    </Control>
-    <Action ID="moveForks"
-            editable="true">
-      <input_port name="fork_angle"
-                  default="0">Fork Angle in Degrees</input_port>
-    </Action>
-    <Action ID="moveLift"
-            editable="true">
-      <input_port name="lift_position"
-                  default="0">Telescope Position in mm</input_port>
-    </Action>
-    <Action ID="moveTelescope"
-            editable="true">
-      <input_port name="telescope_position"
-                  default="0">Telescope Position in mm</input_port>
-    </Action>
-    <Action ID="moveTurntable"
-            editable="true">
-      <input_port name="turntable_position"
-                  default="90">Turntable Position in degrees</input_port>
-    </Action>
-  </TreeNodesModel>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Condition ID="BinClearSensors"/>
+        <Condition ID="BinPresenceSensors"/>
+        <Condition ID="CheckForTote"/>
+        <Condition ID="CheckSTO"/>
+        <Condition ID="Deep">
+            <output_port name="deep">Single/Double Deep</output_port>
+        </Condition>
+        <Condition ID="RackSensors"/>
+        <Action ID="ReportFailure"/>
+        <Condition ID="TelescopeHomeSensors"/>
+        <Action ID="TriggerScanner"/>
+        <Condition ID="TurntableDirection">
+            <output_port default="0" name="turntable_direction">Robot/Left/Right</output_port>
+        </Condition>
+        <Condition ID="TurntableSensor"/>
+        <Control ID="extendTelescope">
+            <inout_port name="editable"/>
+            <input_port default="0" name="extendTelescope"/>
+        </Control>
+        <Action ID="moveForks">
+            <inout_port name="editable"/>
+            <input_port default="0" name="fork_angle">Fork Angle in Degrees</input_port>
+        </Action>
+        <Action ID="moveLift">
+            <inout_port name="editable"/>
+            <input_port default="0" name="lift_position">Telescope Position in mm</input_port>
+        </Action>
+        <Action ID="moveTelescope">
+            <inout_port name="editable"/>
+            <input_port default="0" name="telescope_position">Telescope Position in mm</input_port>
+        </Action>
+        <Action ID="moveTurntable">
+            <inout_port name="editable"/>
+            <input_port default="90" name="turntable_position">Turntable Position in degrees</input_port>
+        </Action>
+    </TreeNodesModel>
+    <!-- ////////// -->
 </root>
