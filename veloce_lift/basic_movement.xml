@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence name="OperationCycle">
+      <!-- Move Fork to position 1500 -->
+      <MoveFork     target="{fork_target}"      />
+      <!-- Then Move Telescope to 800 -->
+      <MoveTelescope target="{telescope_target}" />
+      <!-- Then Rotate Turntable to 3000 -->
+      <MoveTurntable target="{turntable_target}" />
+      <!-- Finally Move Lift to 2000 -->
+      <MoveLift     target="{lift_target}"      />
+    </Sequence>
+  </BehaviorTree>
+</root>
