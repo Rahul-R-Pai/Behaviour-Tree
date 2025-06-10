@@ -1,0 +1,3 @@
+/workspace/bt_demo/veloce_lift/build/CMakeFiles/veloce_lift.dir
+/workspace/bt_demo/veloce_lift/build/CMakeFiles/edit_cache.dir
+/workspace/bt_demo/veloce_lift/build/CMakeFiles/rebuild_cache.dir

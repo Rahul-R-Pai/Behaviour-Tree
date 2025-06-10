@@ -1,15 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <root main_tree_to_execute="MainTree">
-  <BehaviorTree ID="MainTree">
-    <Sequence name="OperationCycle">
-      <!-- Move Fork to position 1500 -->
-      <MoveFork     target="{fork_target}"      />
-      <!-- Then Move Telescope to 800 -->
-      <MoveTelescope target="{telescope_target}" />
-      <!-- Then Rotate Turntable to 3000 -->
-      <MoveTurntable target="{turntable_target}" />
-      <!-- Finally Move Lift to 2000 -->
-      <MoveLift     target="{lift_target}"      />
-    </Sequence>
-  </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="MainTree">
+        <Sequence name="OperationCycle">
+            <Action ID="MoveFork" target="45"/>
+            <Action ID="MoveTurntable" target="90"/>
+            <Action ID="MoveTelescope" target="1400"/>
+            <Action ID="MoveLift" target="800"/>
+        </Sequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Action ID="MoveFork">
+            <inout_port name="target"/>
+        </Action>
+        <Action ID="MoveLift">
+            <inout_port name="target"/>
+        </Action>
+        <Action ID="MoveTelescope">
+            <inout_port name="target"/>
+        </Action>
+        <Action ID="MoveTurntable">
+            <inout_port name="target"/>
+        </Action>
+    </TreeNodesModel>
+    <!-- ////////// -->
 </root>

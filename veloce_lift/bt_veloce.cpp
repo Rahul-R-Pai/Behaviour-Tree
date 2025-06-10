@@ -1,9 +1,13 @@
 // modbus_nodes.cpp
 // BehaviorTree.CPP action nodes for Modbus register writes with delay
 
-#include <behaviortree_cpp_v3/bt_factory.h>
-#include <thread>
+#include <iostream>
 #include <chrono>
+#include "behaviortree_cpp/action_node.h"
+#include "behaviortree_cpp/bt_factory.h"
+#include <vector>
+#include <thread>
+
 
 using namespace BT;
 
@@ -11,7 +15,7 @@ using namespace BT;
 template<int REG_ADDR>
 class WriteRegisterDelay : public SyncActionNode {
 public:
-  WriteRegisterDelay(const std::string& name, const NodeConfiguration& config)
+  explicit WriteRegisterDelay(const std::string& name, const NodeConfiguration& config)
     : SyncActionNode(name, config) {}
 
   static PortsList providedPorts() {
@@ -29,11 +33,10 @@ public:
     // ModbusComm::instance().writeRegister(REG_ADDR, target);
 
     // Delay (simulate movement time)
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 
     std::cout<<"Moving to Pos: "<<0<<std::endl;
     // Optionally, write zero or confirmation value
-    // ModbusComm::instance().writeRegister(REG_ADDR, 0);
     return NodeStatus::SUCCESS;
   }
 };
