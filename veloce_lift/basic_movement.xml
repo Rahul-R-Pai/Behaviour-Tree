@@ -3,10 +3,10 @@
     <!-- ////////// -->
     <BehaviorTree ID="MainTree">
         <Sequence name="OperationCycle">
-            <Action ID="MoveFork" target="45"/>
+            <Action ID="MoveLift" target="800"/>
             <Action ID="MoveTurntable" target="90"/>
             <Action ID="MoveTelescope" target="1400"/>
-            <Action ID="MoveLift" target="800"/>
+            <Action ID="MoveFork" target="45"/>
         </Sequence>
     </BehaviorTree>
     <!-- ////////// -->

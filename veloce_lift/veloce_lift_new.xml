@@ -1,78 +1,109 @@
-<?xml version="1.0"?>
-<root main_tree_to_execute="MainTree">
-    <!-- ////////// -->
-    <BehaviorTree ID="MainTree">
-        <Sequence name="OperationCycle">
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4"
+      main_tree_to_execute="MainTree">
+  <BehaviorTree ID="JogForward">
+    <AlwaysFailure/>
+  </BehaviorTree>
+
+  <BehaviorTree ID="MainTree">
+    <Sequence name="OperationCycle">
+      <Fallback>
+        <ForkUp/>
+        <moveForks editable=""
+                   fork_angle="0"/>
+      </Fallback>
+      <IfThenElse name="CheckTelePos">
+        <TelescopeHomeSensors/>
+        <IfThenElse name="CheckTotePos">
+          <BinPresenceSensors/>
+          <IfThenElse>
+            <TelePos act_position="act_telescope_position"/>
+            <Switch3 case_1="0"
+                     case_2="1"
+                     case_3="2"
+                     variable="turntable_dir">
+              <SubTree ID="internal_rack"
+                       _autoremap="false"/>
+              <SubTree ID="external_single_deep"/>
+              <SubTree ID="external_double_deep"/>
+            </Switch3>
+          </IfThenElse>
+          <SubTree ID="RetractLogic"/>
+        </IfThenElse>
+        <SubTree ID="JogForward"/>
+      </IfThenElse>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="RetractLogic">
+    <AlwaysSuccess/>
+  </BehaviorTree>
+
+  <BehaviorTree ID="external_double_deep">
+    <AlwaysSuccess/>
+  </BehaviorTree>
+
+  <BehaviorTree ID="external_single_deep">
+    <AlwaysSuccess/>
+  </BehaviorTree>
+
+  <BehaviorTree ID="internal_rack">
+    <Fallback>
+      <Lift_Pos lift_act_pos="rack_height"/>
+      <Sequence>
+        <moveLift lift_target_pos="rack_height"/>
+        <Fallback>
+          <turn_pos turn_act_pos="home"/>
+          <Sequence>
+            <moveTurntable turntable_target_pos="home"/>
+            <RackSensors/>
+            <moveTelescope telescope_target_pos="telepick_internal_deep1_mm"/>
             <Fallback>
-                <Condition ID="ForkUp"/>
-                <Action ID="moveForks" editable="" fork_angle="0"/>
+              <BinClearSensors/>
             </Fallback>
-            <IfThenElse name="CheckTelePos">
-                <Inverter>
-                    <Condition ID="TelescopeHomeSensors"/>
-                </Inverter>
-                <SubTree ID="Retract_Logic" __shared_blackboard="true"/>
-                <IfThenElse name="CheckTotePos">
-                    <Condition ID="BinPresenceSensors"/>
-                    <IfThenElse>
-                        <Condition ID="TelePos" act_position=""/>
-                        <Action ID="ReportFailure"/>
-                        <Action ID="ReportFailure"/>
-                    </IfThenElse>
-                    <SubTree ID="Retract_Logic" __shared_blackboard="true"/>
-                </IfThenElse>
-            </IfThenElse>
-        </Sequence>
-    </BehaviorTree>
-    <!-- ////////// -->
-    <BehaviorTree ID="Retract_Logic">
-        <AlwaysFailure/>
-    </BehaviorTree>
-    <!-- ////////// -->
-    <TreeNodesModel>
-        <Condition ID="BinClearSensors"/>
-        <Condition ID="BinPresenceSensors"/>
-        <Condition ID="CheckForTote"/>
-        <Condition ID="CheckSTO"/>
-        <Condition ID="Deep">
-            <output_port name="deep">Single/Double Deep</output_port>
-        </Condition>
-        <Condition ID="ForkUp"/>
-        <Condition ID="Picked"/>
-        <Condition ID="RackSensors"/>
-        <Action ID="ReportFailure"/>
-        <SubTree ID="Retract_Logic">
-            <input_port default="true" name="__shared_blackboard">If false (default), the Subtree has an isolated blackboard and needs port remapping</input_port>
-        </SubTree>
-        <Condition ID="TelePos">
-            <output_port name="act_position"/>
-        </Condition>
-        <Condition ID="TelescopeHomeSensors"/>
-        <Action ID="TriggerScanner"/>
-        <Condition ID="TurntableDirection">
-            <output_port default="0" name="turntable_direction">Robot/Left/Right</output_port>
-        </Condition>
-        <Condition ID="TurntableSensor"/>
-        <Control ID="extendTelescope">
-            <inout_port name="editable"/>
-            <input_port default="0" name="extendTelescope"/>
-        </Control>
-        <Action ID="moveForks">
-            <inout_port name="editable"/>
-            <input_port default="0" name="fork_angle">Fork Angle in Degrees</input_port>
-        </Action>
-        <Action ID="moveLift">
-            <inout_port name="editable"/>
-            <input_port default="0" name="lift_position">Telescope Position in mm</input_port>
-        </Action>
-        <Action ID="moveTelescope">
-            <inout_port name="editable"/>
-            <input_port default="0" name="telescope_position">Telescope Position in mm</input_port>
-        </Action>
-        <Action ID="moveTurntable">
-            <inout_port name="editable"/>
-            <input_port default="90" name="turntable_position">Turntable Position in degrees</input_port>
-        </Action>
-    </TreeNodesModel>
-    <!-- ////////// -->
+          </Sequence>
+        </Fallback>
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Condition ID="BinClearSensors"
+               editable="true"/>
+    <Condition ID="BinPresenceSensors"/>
+    <Condition ID="ForkUp"/>
+    <Condition ID="Lift_Pos"
+               editable="true">
+      <input_port name="lift_act_pos"/>
+    </Condition>
+    <Condition ID="RackSensors"
+               editable="true"/>
+    <Condition ID="TelePos">
+      <output_port name="act_position"/>
+    </Condition>
+    <Condition ID="TelescopeHomeSensors"/>
+    <Action ID="moveForks">
+      <inout_port name="editable"/>
+      <input_port name="fork_angle"
+                  default="0">Fork Angle in Degrees</input_port>
+    </Action>
+    <Action ID="moveLift"
+            editable="true">
+      <input_port name="lift_target_pos"/>
+    </Action>
+    <Action ID="moveTelescope"
+            editable="true">
+      <input_port name="telescope_target_pos"/>
+    </Action>
+    <Action ID="moveTurntable"
+            editable="true">
+      <input_port name="turntable_target_pos"/>
+    </Action>
+    <Condition ID="turn_pos"
+               editable="true">
+      <input_port name="turn_act_pos"/>
+    </Condition>
+  </TreeNodesModel>
+
 </root>
