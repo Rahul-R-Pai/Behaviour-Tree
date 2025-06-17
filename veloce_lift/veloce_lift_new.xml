@@ -8,9 +8,8 @@
   <BehaviorTree ID="MainTree">
     <Sequence name="OperationCycle">
       <Fallback>
-        <ForkUp/>
-        <moveForks editable=""
-                   fork_angle="0"/>
+        <ForkUp_copy fork_pos="0"/>
+        <moveForks fork_pos="0"/>
       </Fallback>
       <IfThenElse name="CheckTelePos">
         <TelescopeHomeSensors/>
@@ -28,14 +27,14 @@
               <SubTree ID="external_double_deep"/>
             </Switch3>
           </IfThenElse>
-          <SubTree ID="RetractLogic"/>
+          <SubTree ID="RetractTelescope"/>
         </IfThenElse>
         <SubTree ID="JogForward"/>
       </IfThenElse>
     </Sequence>
   </BehaviorTree>
 
-  <BehaviorTree ID="RetractLogic">
+  <BehaviorTree ID="RetractTelescope">
     <AlwaysSuccess/>
   </BehaviorTree>
 
@@ -59,8 +58,15 @@
             <RackSensors/>
             <moveTelescope telescope_target_pos="telepick_internal_deep1_mm"/>
             <Fallback>
-              <BinClearSensors/>
+              <Inverter>
+                <BinClearSensors/>
+              </Inverter>
+              <SubTree ID="JogForward"/>
             </Fallback>
+            <moveForks fork_pos="0"/>
+            <SetBlackboard value="true"
+                           output_key="pick_status"/>
+            <SubTree ID="RetractTelescope"/>
           </Sequence>
         </Fallback>
       </Sequence>
@@ -72,7 +78,10 @@
     <Condition ID="BinClearSensors"
                editable="true"/>
     <Condition ID="BinPresenceSensors"/>
-    <Condition ID="ForkUp"/>
+    <Condition ID="ForkUp_copy"
+               editable="true">
+      <output_port name="fork_pos"/>
+    </Condition>
     <Condition ID="Lift_Pos"
                editable="true">
       <input_port name="lift_act_pos"/>
@@ -83,9 +92,9 @@
       <output_port name="act_position"/>
     </Condition>
     <Condition ID="TelescopeHomeSensors"/>
-    <Action ID="moveForks">
-      <inout_port name="editable"/>
-      <input_port name="fork_angle"
+    <Action ID="moveForks"
+            editable="true">
+      <input_port name="fork_pos"
                   default="0">Fork Angle in Degrees</input_port>
     </Action>
     <Action ID="moveLift"

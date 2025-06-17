@@ -5,7 +5,9 @@
     <TreeNodesModel>
         <Condition ID="BinClearSensors" editable="true"/>
         <Condition ID="BinPresenceSensors"/>
-        <Condition ID="ForkUp"/>
+        <Condition ID="ForkUp_copy" editable="true">
+            <output_port name="fork_pos"/>
+        </Condition>
         <Condition ID="Lift_Pos" editable="true">
             <input_port name="lift_act_pos"/>
         </Condition>
@@ -14,9 +16,8 @@
             <output_port name="act_position"/>
         </Condition>
         <Condition ID="TelescopeHomeSensors"/>
-        <Action ID="moveForks">
-            <inout_port name="editable"/>
-            <input_port name="fork_angle" default="0">Fork Angle in Degrees</input_port>
+        <Action ID="moveForks" editable="true">
+            <input_port name="fork_pos" default="0">Fork Angle in Degrees</input_port>
         </Action>
         <Action ID="moveLift" editable="true">
             <input_port name="lift_target_pos"/>
