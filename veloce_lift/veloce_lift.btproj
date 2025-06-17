@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4" project_name="Project">
+    <include path="veloce_lift_new.xml"/>
+    <!-- Description of Node Models (used by Groot) -->
+    <TreeNodesModel>
+        <Condition ID="BinClearSensors" editable="true"/>
+        <Condition ID="BinPresenceSensors"/>
+        <Condition ID="ForkUp"/>
+        <Condition ID="Lift_Pos" editable="true">
+            <input_port name="lift_act_pos"/>
+        </Condition>
+        <Condition ID="RackSensors" editable="true"/>
+        <Condition ID="TelePos">
+            <output_port name="act_position"/>
+        </Condition>
+        <Condition ID="TelescopeHomeSensors"/>
+        <Action ID="moveForks">
+            <inout_port name="editable"/>
+            <input_port name="fork_angle" default="0">Fork Angle in Degrees</input_port>
+        </Action>
+        <Action ID="moveLift" editable="true">
+            <input_port name="lift_target_pos"/>
+        </Action>
+        <Action ID="moveTelescope" editable="true">
+            <input_port name="telescope_target_pos"/>
+        </Action>
+        <Action ID="moveTurntable" editable="true">
+            <input_port name="turntable_target_pos"/>
+        </Action>
+        <Condition ID="turn_pos" editable="true">
+            <input_port name="turn_act_pos"/>
+        </Condition>
+    </TreeNodesModel>
+</root>
