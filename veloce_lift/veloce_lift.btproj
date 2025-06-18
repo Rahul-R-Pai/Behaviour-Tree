@@ -16,6 +16,9 @@
             <output_port name="act_position"/>
         </Condition>
         <Condition ID="TelescopeHomeSensors"/>
+        <Condition ID="ToteOutOfReach" editable="true">
+            <output_port name="tote_out_of_reach"/>
+        </Condition>
         <Action ID="moveForks" editable="true">
             <input_port name="fork_pos" default="0">Fork Angle in Degrees</input_port>
         </Action>
@@ -24,6 +27,7 @@
         </Action>
         <Action ID="moveTelescope" editable="true">
             <input_port name="telescope_target_pos"/>
+            <input_port name="control_mode"/>
         </Action>
         <Action ID="moveTurntable" editable="true">
             <input_port name="turntable_target_pos"/>
