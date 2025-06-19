@@ -5,6 +5,8 @@
 #include <chrono>
 #include "behaviortree_cpp/action_node.h"
 #include "behaviortree_cpp/bt_factory.h"
+#include "behaviortree_cpp/loggers/groot2_publisher.h"
+// #include "behaviortree_cpp/loggers/bt_zmq_publisher.h"
 #include <vector>
 #include <thread>
 
@@ -57,6 +59,10 @@ int main() {
   
   // Load tree from XML
   auto tree = factory.createTreeFromFile("./../basic_movement.xml");
+
+  // Connect the Groot2Publisher. This will allow Groot2 to
+  // get the tree and poll status updates.
+  BT::Groot2Publisher publisher(tree);
 
   // Tick the root until it finishes
   while (tree.rootNode()->executeTick() == NodeStatus::RUNNING) {
