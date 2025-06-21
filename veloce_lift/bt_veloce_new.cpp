@@ -103,7 +103,7 @@ Lift_Pos(const std::string& name, const BT::NodeConfig& config)
 
 static BT::PortsList providedPorts()
 {
-return { BT::InputPortstd::string("lift_act_pos") };
+return { BT::InputPort<std::string>("lift_act_pos") };
 }
 
 BT::NodeStatus tick() override
@@ -125,7 +125,7 @@ moveLift(const std::string& name, const BT::NodeConfig& config)
 
 static BT::PortsList providedPorts()
 {
-return { BT::InputPortstd::string("lift_target_pos") };
+return { BT::InputPort<std::string>("lift_target_pos") };
 }
 
 BT::NodeStatus tick() override
@@ -146,8 +146,8 @@ moveTelescope(const std::string& name, const BT::NodeConfig& config)
 static BT::PortsList providedPorts()
 {
 return {
-BT::InputPortstd::string("telescope_target_pos"),
-BT::InputPortstd::string("control_mode")
+BT::InputPort<std::string>("telescope_target_pos"),
+BT::InputPort<std::string>("control_mode")
 };
 }
 
@@ -168,10 +168,10 @@ int main()
 BT::BehaviorTreeFactory factory;
 
 // Register all actions and conditions here
-factory.registerSimpleCondition("BinClearSensors", BinClearSensors);
-factory.registerSimpleCondition("BinPresenceSensors", BinPresenceSensors);
-factory.registerSimpleCondition("RackSensors", RackSensors);
-factory.registerSimpleCondition("TelescopeHomeSensors", TelescopeHomeSensors);
+factory.registerSimpleCondition("BinClearSensors", std::bind(BinClearSensors));
+factory.registerSimpleCondition("BinPresenceSensors", std::bind(BinPresenceSensors));
+factory.registerSimpleCondition("RackSensors", std::bind(RackSensors));
+factory.registerSimpleCondition("TelescopeHomeSensors", std::bind(TelescopeHomeSensors));
 factory.registerNodeType<Lift_Pos>("Lift_Pos");
 factory.registerNodeType<moveLift>("moveLift");
 factory.registerNodeType<moveTelescope>("moveTelescope");

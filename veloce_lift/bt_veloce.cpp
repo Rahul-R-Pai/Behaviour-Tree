@@ -35,7 +35,7 @@ public:
     // ModbusComm::instance().writeRegister(REG_ADDR, target);
 
     // Delay (simulate movement time)
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    std::this_thread::sleep_for(std::chrono::seconds(15));
 
     std::cout<<"Moving to Pos: "<<0<<std::endl;
     // Optionally, write zero or confirmation value

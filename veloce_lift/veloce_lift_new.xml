@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<root BTCPP_format="4"
-      main_tree_to_execute="MainTree">
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
   <BehaviorTree ID="3StageCycle">
     <AlwaysSuccess/>
   </BehaviorTree>
@@ -14,14 +13,12 @@
           <turn_pos turn_act_pos="home"/>
           <Sequence>
             <moveTurntable turntable_target_pos="dir"/>
-            <SubTree ID="3StageCycle"
-                     _autoremap="true"/>
+            <SubTree ID="3StageCycle" _autoremap="true"/>
             <Fallback>
               <Lift_Pos lift_act_pos="pick_height"/>
               <moveLift lift_target_pos="double_pick_height"/>
             </Fallback>
-            <moveTelescope telescope_target_pos="telepick_external_deep1_mm"
-                           control_mode=""/>
+            <moveTelescope telescope_target_pos="telepick_external_deep1_mm" control_mode=""/>
           </Sequence>
         </Fallback>
       </Sequence>
@@ -30,26 +27,22 @@
 
   <BehaviorTree ID="JogForward">
     <Sequence>
-      <Switch2 case_1="1"
-               case_2="2"
-               variable="deep">
+      <Switch2 case_1="1" case_2="2" variable="deep">
         <Fallback>
           <TelePos act_position="telepick_joglimit_deep1_mm"/>
-          <moveTelescope telescope_target_pos="telepick_joglimit_deep1_mm"
-                         control_mode="speed"/>
+          <moveTelescope telescope_target_pos="telepick_joglimit_deep1_mm" control_mode="speed"/>
         </Fallback>
         <Fallback>
           <TelePos act_position="telepick_joglimit_deep2_mm"/>
-          <moveTelescope telescope_target_pos="telepick_joglimit_deep2_mm"
-                         control_mode="speed"/>
+          <moveTelescope telescope_target_pos="telepick_joglimit_deep2_mm" control_mode="speed"/>
         </Fallback>
+        <AlwaysFailure/> <!-- Default case -->
       </Switch2>
       <Fallback>
         <Inverter>
           <BinClearSensors/>
         </Inverter>
-        <SetBlackboard value="true"
-                       output_key="tote_out_of_reach"/>
+        <SetBlackboard value="true" output_key="tote_out_of_reach"/>
       </Fallback>
     </Sequence>
   </BehaviorTree>
@@ -64,40 +57,31 @@
         <TelescopeHomeSensors/>
         <IfThenElse name="CheckTotePos">
           <BinPresenceSensors/>
-          <SubTree ID="RetractTelescope"
-                   _autoremap="true"/>
+          <SubTree ID="RetractTelescope" _autoremap="true"/>
           <IfThenElse>
             <TelePos act_position="act_telescope_position"/>
-            <Switch2 case_1="1"
-                     case_2="2"
-                     variable="deep">
-              <SubTree ID="SingleDeep"
-                       _autoremap="true"/>
-              <SubTree ID="DoubleDeep"
-                       _autoremap="true"/>
+            <Switch2 case_1="1" case_2="2" variable="deep">
+              <SubTree ID="SingleDeep" _autoremap="true"/>
+              <SubTree ID="DoubleDeep" _autoremap="true"/>
+              <AlwaysFailure/> <!-- Default case -->
             </Switch2>
           </IfThenElse>
         </IfThenElse>
-        <SubTree ID="JogForward"
-                 _autoremap="true"/>
+        <SubTree ID="JogForward" _autoremap="true"/>
       </IfThenElse>
     </Sequence>
   </BehaviorTree>
 
   <BehaviorTree ID="RetractTelescope">
-    <Switch2 case_1="1"
-             case_2="2"
-             variable="deep">
+    <Switch2 case_1="1" case_2="2" variable="deep">
       <Fallback>
         <TelePos act_position="0"/>
-        <moveTelescope telescope_target_pos="0"
-                       control_mode=""/>
+        <moveTelescope telescope_target_pos="0" control_mode=""/>
       </Fallback>
       <Sequence>
         <Fallback>
           <TelePos act_position="845"/>
-          <moveTelescope telescope_target_pos="845"
-                         control_mode=""/>
+          <moveTelescope telescope_target_pos="845" control_mode=""/>
         </Fallback>
         <Fallback>
           <Lift_Pos lift_act_pos="pick_height"/>
@@ -105,10 +89,10 @@
         </Fallback>
         <Fallback>
           <TelePos act_position="0"/>
-          <moveTelescope telescope_target_pos="0"
-                         control_mode=""/>
+          <moveTelescope telescope_target_pos="0" control_mode=""/>
         </Fallback>
       </Sequence>
+      <AlwaysFailure/> <!-- Default case -->
     </Switch2>
   </BehaviorTree>
 
@@ -120,45 +104,38 @@
         <Fallback>
           <turn_pos turn_act_pos="home"/>
           <Sequence>
-            <Switch2 case_1="0"
-                     case_2="1"
-                     variable="turntable_dir">
+            <Switch2 case_1="0" case_2="1" variable="turntable_dir">
               <Sequence>
                 <moveTurntable turntable_target_pos="home"/>
-                <moveTelescope telescope_target_pos="telepick_internal_deep1_mm"
-                               control_mode=""/>
+                <moveTelescope telescope_target_pos="telepick_internal_deep1_mm" control_mode=""/>
                 <RackSensors/>
               </Sequence>
               <Sequence>
                 <moveTurntable turntable_target_pos="dir"/>
-                <SubTree ID="3StageCycle"
-                         _autoremap="true"/>
+                <SubTree ID="3StageCycle" _autoremap="true"/>
                 <Fallback>
                   <Lift_Pos lift_act_pos="pick_height"/>
                   <moveLift lift_target_pos="pick_height"/>
                 </Fallback>
                 <RackSensors/>
-                <moveTelescope telescope_target_pos="telepick_external_deep1_mm"
-                               control_mode=""/>
+                <moveTelescope telescope_target_pos="telepick_external_deep1_mm" control_mode=""/>
               </Sequence>
+              <AlwaysFailure/> <!-- Default case -->
             </Switch2>
             <Fallback>
               <BinClearSensors/>
-              <SubTree ID="JogForward"
-                       _autoremap="true"/>
+              <SubTree ID="JogForward" _autoremap="true"/>
             </Fallback>
             <Fallback>
               <Inverter>
-                <ToteOutOfReach tote_out_of_reach="tote_out_of_reach"/>
+                <ToteOutOfReach tote_out_of_reach="t02te_out_of_reach"/>
               </Inverter>
               <Sequence>
                 <moveForks fork_pos="0"/>
-                <SetBlackboard value="true"
-                               output_key="picked"/>
+                <SetBlackboard value="true" output_key="picked"/>
               </Sequence>
             </Fallback>
-            <SubTree ID="RetractTelescope"
-                     _autoremap="true"/>
+            <SubTree ID="RetractTelescope" _autoremap="true"/>
           </Sequence>
         </Fallback>
       </Sequence>
@@ -167,49 +144,37 @@
 
   <!-- Description of Node Models (used by Groot) -->
   <TreeNodesModel>
-    <Condition ID="BinClearSensors"
-               editable="true"/>
+    <Condition ID="BinClearSensors" editable="true"/>
     <Condition ID="BinPresenceSensors"/>
-    <Condition ID="ForkUp_copy"
-               editable="true">
+    <Condition ID="ForkUp_copy" editable="true">
       <output_port name="fork_pos"/>
     </Condition>
-    <Condition ID="Lift_Pos"
-               editable="true">
+    <Condition ID="Lift_Pos" editable="true">
       <input_port name="lift_act_pos"/>
     </Condition>
-    <Condition ID="RackSensors"
-               editable="true"/>
-    <Condition ID="TelePos">
-      <output_port name="act_position"/>
+    <Condition ID="RackSensors" editable="true"/>
+    <Condition ID="TelePos" editable="true">
+      <input_port name="act_position"/>
     </Condition>
     <Condition ID="TelescopeHomeSensors"/>
-    <Condition ID="ToteOutOfReach"
-               editable="true">
+    <Condition ID="ToteOutOfReach" editable="true">
       <output_port name="tote_out_of_reach"/>
     </Condition>
-    <Action ID="moveForks"
-            editable="true">
-      <input_port name="fork_pos"
-                  default="0">Fork Angle in Degrees</input_port>
+    <Action ID="moveForks" editable="true">
+      <input_port name="fork_pos" default="0">Fork Angle in Degrees</input_port>
     </Action>
-    <Action ID="moveLift"
-            editable="true">
+    <Action ID="moveLift" editable="true">
       <input_port name="lift_target_pos"/>
     </Action>
-    <Action ID="moveTelescope"
-            editable="true">
+    <Action ID="moveTelescope" editable="true">
       <input_port name="telescope_target_pos"/>
       <input_port name="control_mode"/>
     </Action>
-    <Action ID="moveTurntable"
-            editable="true">
+    <Action ID="moveTurntable" editable="true">
       <input_port name="turntable_target_pos"/>
     </Action>
-    <Condition ID="turn_pos"
-               editable="true">
+    <Condition ID="turn_pos" editable="true">
       <input_port name="turn_act_pos"/>
     </Condition>
   </TreeNodesModel>
-
 </root>

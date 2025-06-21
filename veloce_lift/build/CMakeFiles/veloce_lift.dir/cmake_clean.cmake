@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o"
-  "CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o.d"
+  "CMakeFiles/veloce_lift.dir/bt_ui.cpp.o"
+  "CMakeFiles/veloce_lift.dir/bt_ui.cpp.o.d"
   "veloce_lift"
   "veloce_lift.pdb"
 )

@@ -69,28 +69,28 @@ include CMakeFiles/veloce_lift.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/veloce_lift.dir/flags.make
 
-CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o: CMakeFiles/veloce_lift.dir/flags.make
-CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o: ../bt_veloce.cpp
-CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o: CMakeFiles/veloce_lift.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/bt_demo/veloce_lift/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o -MF CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o.d -o CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o -c /workspace/bt_demo/veloce_lift/bt_veloce.cpp
+CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: CMakeFiles/veloce_lift.dir/flags.make
+CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp
+CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: CMakeFiles/veloce_lift.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/bt_demo/veloce_lift/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/veloce_lift.dir/bt_ui.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/veloce_lift.dir/bt_ui.cpp.o -MF CMakeFiles/veloce_lift.dir/bt_ui.cpp.o.d -o CMakeFiles/veloce_lift.dir/bt_ui.cpp.o -c /workspace/bt_demo/veloce_lift/bt_ui.cpp
 
-CMakeFiles/veloce_lift.dir/bt_veloce.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/veloce_lift.dir/bt_veloce.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspace/bt_demo/veloce_lift/bt_veloce.cpp > CMakeFiles/veloce_lift.dir/bt_veloce.cpp.i
+CMakeFiles/veloce_lift.dir/bt_ui.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/veloce_lift.dir/bt_ui.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspace/bt_demo/veloce_lift/bt_ui.cpp > CMakeFiles/veloce_lift.dir/bt_ui.cpp.i
 
-CMakeFiles/veloce_lift.dir/bt_veloce.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/veloce_lift.dir/bt_veloce.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspace/bt_demo/veloce_lift/bt_veloce.cpp -o CMakeFiles/veloce_lift.dir/bt_veloce.cpp.s
+CMakeFiles/veloce_lift.dir/bt_ui.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/veloce_lift.dir/bt_ui.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspace/bt_demo/veloce_lift/bt_ui.cpp -o CMakeFiles/veloce_lift.dir/bt_ui.cpp.s
 
 # Object files for target veloce_lift
 veloce_lift_OBJECTS = \
-"CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o"
+"CMakeFiles/veloce_lift.dir/bt_ui.cpp.o"
 
 # External object files for target veloce_lift
 veloce_lift_EXTERNAL_OBJECTS =
 
-veloce_lift: CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o
+veloce_lift: CMakeFiles/veloce_lift.dir/bt_ui.cpp.o
 veloce_lift: CMakeFiles/veloce_lift.dir/build.make
 veloce_lift: /workspace/install/behaviortree_cpp/lib/libbehaviortree_cpp.so
 veloce_lift: /usr/lib/x86_64-linux-gnu/libzmq.so

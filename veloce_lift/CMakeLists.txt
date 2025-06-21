@@ -6,5 +6,5 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(behaviortree_cpp)
 
-add_executable(${PROJECT_NAME} "bt_veloce.cpp")
-target_link_libraries(${PROJECT_NAME} BT::behaviortree_cpp)
+add_executable(${PROJECT_NAME} "bt_ui.cpp")
+target_link_libraries(${PROJECT_NAME} BT::behaviortree_cpp ncurses)

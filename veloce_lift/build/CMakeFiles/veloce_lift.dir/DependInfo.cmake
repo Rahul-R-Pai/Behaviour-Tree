@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/workspace/bt_demo/veloce_lift/bt_veloce.cpp" "CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o" "gcc" "CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o.d"
+  "/workspace/bt_demo/veloce_lift/bt_ui.cpp" "CMakeFiles/veloce_lift.dir/bt_ui.cpp.o" "gcc" "CMakeFiles/veloce_lift.dir/bt_ui.cpp.o.d"
   )
 
 # Targets to which this target links.

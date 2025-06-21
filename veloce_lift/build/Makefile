@@ -129,29 +129,29 @@ veloce_lift/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/build
 .PHONY : veloce_lift/fast
 
-bt_veloce.o: bt_veloce.cpp.o
-.PHONY : bt_veloce.o
+bt_ui.o: bt_ui.cpp.o
+.PHONY : bt_ui.o
 
 # target to build an object file
-bt_veloce.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/bt_veloce.cpp.o
-.PHONY : bt_veloce.cpp.o
+bt_ui.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/bt_ui.cpp.o
+.PHONY : bt_ui.cpp.o
 
-bt_veloce.i: bt_veloce.cpp.i
-.PHONY : bt_veloce.i
+bt_ui.i: bt_ui.cpp.i
+.PHONY : bt_ui.i
 
 # target to preprocess a source file
-bt_veloce.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/bt_veloce.cpp.i
-.PHONY : bt_veloce.cpp.i
+bt_ui.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/bt_ui.cpp.i
+.PHONY : bt_ui.cpp.i
 
-bt_veloce.s: bt_veloce.cpp.s
-.PHONY : bt_veloce.s
+bt_ui.s: bt_ui.cpp.s
+.PHONY : bt_ui.s
 
 # target to generate assembly for a file
-bt_veloce.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/bt_veloce.cpp.s
-.PHONY : bt_veloce.cpp.s
+bt_ui.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/bt_ui.cpp.s
+.PHONY : bt_ui.cpp.s
 
 # Help Target
 help:
@@ -162,9 +162,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... veloce_lift"
-	@echo "... bt_veloce.o"
-	@echo "... bt_veloce.i"
-	@echo "... bt_veloce.s"
+	@echo "... bt_ui.o"
+	@echo "... bt_ui.i"
+	@echo "... bt_ui.s"
 .PHONY : help
 
 
