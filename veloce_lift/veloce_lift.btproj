@@ -1,39 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<root BTCPP_format="4" project_name="Project">
+<root BTCPP_format="3" project_name="Project">
     <include path="veloce_lift_new.xml"/>
     <!-- Description of Node Models (used by Groot) -->
     <TreeNodesModel>
         <Condition ID="BinClearSensors" editable="true"/>
         <Condition ID="BinPresenceSensors"/>
-        <Condition ID="ForkUp_copy" editable="true">
-            <output_port name="fork_pos"/>
+        <Condition ID="ForkPosition" editable="true">
+            <output_port name="fork_position_deg" default="0.0" type="double"/>
         </Condition>
-        <Condition ID="Lift_Pos" editable="true">
-            <input_port name="lift_act_pos"/>
+        <Condition ID="LiftPosition" editable="true">
+            <input_port name="lift_position_m" type="double"/>
         </Condition>
+        <Action ID="MoveForks" editable="true">
+            <input_port name="fork_position_deg" default="0.0" type="double">Fork Angle in Degrees</input_port>
+            <output_port name="current_fork_position_deg" type="double"/>
+            <output_port name="error_code" type="int"/>
+            <output_port name="error_msg" type="string"/>
+        </Action>
+        <Action ID="MoveLift" editable="true">
+            <input_port name="lift_target_position_m" type="double"/>
+            <output_port name="current_lift_position_m" type="double"/>
+            <output_port name="error_code" type="int"/>
+            <output_port name="error_msg" type="string"/>
+        </Action>
+        <Action ID="MoveTelescope" editable="true">
+            <input_port name="telescope_target_position_mm" type="int"/>
+            <input_port name="control_mode" default="position" type="string"/>
+            <output_port name="current_telescope_position_mm" type="int"/>
+            <output_port name="error_code" type="int"/>
+            <output_port name="error_msg" type="string"/>
+        </Action>
+        <Action ID="MoveTurntable" editable="true">
+            <input_port name="turntable_target_position" type="string"/>
+            <output_port name="current_turntable_position" type="string"/>
+            <output_port name="error_code" type="int"/>
+            <output_port name="error_msg" type="string"/>
+        </Action>
         <Condition ID="RackSensors" editable="true"/>
-        <Condition ID="TelePos">
-            <output_port name="act_position"/>
-        </Condition>
         <Condition ID="TelescopeHomeSensors"/>
-        <Condition ID="ToteOutOfReach" editable="true">
-            <output_port name="tote_out_of_reach"/>
+        <Condition ID="TelescopePosition" editable="true">
+            <input_port name="telescope_position_mm" type="int"/>
         </Condition>
-        <Action ID="moveForks" editable="true">
-            <input_port name="fork_pos" default="0">Fork Angle in Degrees</input_port>
-        </Action>
-        <Action ID="moveLift" editable="true">
-            <input_port name="lift_target_pos"/>
-        </Action>
-        <Action ID="moveTelescope" editable="true">
-            <input_port name="telescope_target_pos"/>
-            <input_port name="control_mode"/>
-        </Action>
-        <Action ID="moveTurntable" editable="true">
-            <input_port name="turntable_target_pos"/>
-        </Action>
-        <Condition ID="turn_pos" editable="true">
-            <input_port name="turn_act_pos"/>
+        <Condition ID="ToteOutOfReach" editable="true">
+            <input_port name="tote_out_of_reach" type="bool"/>
+        </Condition>
+        <Condition ID="TurntablePosition" editable="true">
+            <input_port name="turntable_position" type="string"/>
         </Condition>
     </TreeNodesModel>
 </root>

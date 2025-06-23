@@ -13,6 +13,15 @@ struct BBValue {
     std::string value;
 };
 
+// Simulated current positions
+std::map<std::string, std::string> current_positions = {
+    {"current_lift_pos", "0.0"},
+    {"current_telescope_pos", "0"},
+    {"current_fork_pos", "0.0"},
+    {"current_turntable_pos", "home"}
+};
+
+// Custom StatefulActionNode for MoveLift
 class MoveLiftNode : public BT::StatefulActionNode
 {
 public:
@@ -57,6 +66,7 @@ public:
             setOutput("current_lift_position_m", target_pos_);
             setOutput("error_code", 0);
             setOutput("error_msg", "Success");
+            current_positions["current_lift_pos"] = std::to_string(target_pos_);
             std::cout << "[Action] MoveLift reached target: " << target_pos_ << " m" << std::endl;
             return BT::NodeStatus::SUCCESS;
         }
@@ -73,6 +83,7 @@ private:
     std::chrono::steady_clock::time_point start_time_;
 };
 
+// Custom StatefulActionNode for MoveTelescope
 class MoveTelescopeNode : public BT::StatefulActionNode
 {
 public:
@@ -119,6 +130,7 @@ public:
             setOutput("current_telescope_position_mm", target_pos_);
             setOutput("error_code", 0);
             setOutput("error_msg", "Success");
+            current_positions["current_telescope_pos"] = std::to_string(target_pos_);
             std::cout << "[Action] MoveTelescope reached target: " << target_pos_ << " mm (" << mode_ << ")" << std::endl;
             return BT::NodeStatus::SUCCESS;
         }
@@ -136,6 +148,7 @@ private:
     std::chrono::steady_clock::time_point start_time_;
 };
 
+// Custom StatefulActionNode for MoveTurntable
 class MoveTurntableNode : public BT::StatefulActionNode
 {
 public:
@@ -180,6 +193,7 @@ public:
             setOutput("current_turntable_position", target_pos_);
             setOutput("error_code", 0);
             setOutput("error_msg", "Success");
+            current_positions["current_turntable_pos"] = target_pos_;
             std::cout << "[Action] MoveTurntable reached target: " << target_pos_ << std::endl;
             return BT::NodeStatus::SUCCESS;
         }
@@ -196,6 +210,7 @@ private:
     std::chrono::steady_clock::time_point start_time_;
 };
 
+// Custom StatefulActionNode for MoveForks
 class MoveForksNode : public BT::StatefulActionNode
 {
 public:
@@ -240,6 +255,7 @@ public:
             setOutput("current_fork_position_deg", fork_pos_);
             setOutput("error_code", 0);
             setOutput("error_msg", "Success");
+            current_positions["current_fork_pos"] = std::to_string(fork_pos_);
             std::cout << "[Action] MoveForks reached target: " << fork_pos_ << " deg" << std::endl;
             return BT::NodeStatus::SUCCESS;
         }
@@ -307,18 +323,22 @@ int main()
     }, {BT::OutputPort<bool>("tote_out_of_reach")});
 
     factory.registerSimpleCondition("TurntablePosition", [&conditions](BT::TreeNode& node) {
-        std::string turn_pos;
-        if (!node.getInput("turntable_position", turn_pos)) {
+        std::string target_pos;
+        if (!node.getInput("turntable_position", target_pos)) {
             std::cout << "[Condition] TurntablePosition: Missing turntable_position" << std::endl;
             return BT::NodeStatus::FAILURE;
         }
-        std::cout << "[Condition] TurntablePosition checking: " << turn_pos << std::endl;
-        return conditions.at("TurntablePosition");
+        auto current_pos = current_positions["current_turntable_pos"];
+        bool is_equal = (current_pos == target_pos);
+        std::cout << "[Condition] TurntablePosition checking: current=" << current_pos
+                  << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+        conditions["TurntablePosition"] = is_equal ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
+        return conditions["TurntablePosition"];
     }, {BT::InputPort<std::string>("turntable_position")});
 
     factory.registerSimpleCondition("LiftPosition", [&conditions](BT::TreeNode& node) {
-        double lift_pos;
-        if (!node.getInput("lift_position_m", lift_pos)) {
+        double target_pos;
+        if (!node.getInput("lift_position_m", target_pos)) {
             std::string input;
             if (node.getInput<std::string>("lift_position_m", input)) {
                 std::cout << "[Condition] LiftPosition: Invalid lift_position_m value: " << input << std::endl;
@@ -327,25 +347,41 @@ int main()
             }
             return BT::NodeStatus::FAILURE;
         }
-        std::cout << "[Condition] LiftPosition checking: " << lift_pos << " m" << std::endl;
-        return conditions.at("LiftPosition");
+        double current_pos = std::stod(current_positions["current_lift_pos"]);
+        bool is_equal = std::abs(current_pos - target_pos) < 0.0001; // Floating-point comparison
+        std::cout << "[Condition] LiftPosition checking: current=" << current_pos
+                  << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+        conditions["LiftPosition"] = is_equal ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
+        return conditions["LiftPosition"];
     }, {BT::InputPort<double>("lift_position_m")});
 
     factory.registerSimpleCondition("ForkPosition", [&conditions](BT::TreeNode& node) {
-        double fork_pos = 0.0; // Default value
-        node.setOutput("fork_position_deg", fork_pos);
-        std::cout << "[Condition] ForkPosition setting fork_position_deg: " << fork_pos << std::endl;
-        return conditions.at("ForkPosition");
-    }, {BT::OutputPort<double>("fork_position_deg")});
+        double target_pos;
+        if (!node.getInput("fork_position_deg", target_pos)) {
+            std::cout << "[Condition] ForkPosition: Missing fork_position_deg" << std::endl;
+            return BT::NodeStatus::FAILURE;
+        }
+        double current_pos = std::stod(current_positions["current_fork_pos"]);
+        bool is_equal = std::abs(current_pos - target_pos) < 0.0001; // Floating-point comparison
+        node.setOutput("fork_position_deg", current_pos);
+        std::cout << "[Condition] ForkPosition checking: current=" << current_pos
+                  << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+        conditions["ForkPosition"] = is_equal ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
+        return conditions["ForkPosition"];
+    }, {BT::InputPort<double>("fork_position_deg"), BT::OutputPort<double>("fork_position_deg")});
 
     factory.registerSimpleCondition("TelescopePosition", [&conditions](BT::TreeNode& node) {
-        int telescope_pos;
-        if (!node.getInput("telescope_position_mm", telescope_pos)) {
+        int target_pos;
+        if (!node.getInput("telescope_position_mm", target_pos)) {
             std::cout << "[Condition] TelescopePosition: Missing telescope_position_mm" << std::endl;
             return BT::NodeStatus::FAILURE;
         }
-        std::cout << "[Condition] TelescopePosition checking: " << telescope_pos << " mm" << std::endl;
-        return conditions.at("TelescopePosition");
+        int current_pos = std::stoi(current_positions["current_telescope_pos"]);
+        bool is_equal = (current_pos == target_pos);
+        std::cout << "[Condition] TelescopePosition checking: current=" << current_pos
+                  << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+        conditions["TelescopePosition"] = is_equal ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
+        return conditions["TelescopePosition"];
     }, {BT::InputPort<int>("telescope_position_mm")});
 
     // Register custom action nodes
@@ -358,11 +394,12 @@ int main()
     auto blackboard = BT::Blackboard::create();
 
     // Initialize blackboard with valid numeric values
-    blackboard->set("lift_position", 0.5); // Default lift position (meters)
-    blackboard->set("telescope_target", 0); // Default telescope position (mm)
+    blackboard->set("target_lift_pos", 0.5); // Default lift position (meters)
+    blackboard->set("target_telescope_pos", 0); // Default telescope position (mm)
+    blackboard->set("target_fork_pos", 0.0); // Default fork position (deg)
+    blackboard->set("turntable_dir", std::string("home"));
     blackboard->set("telescope_mode", std::string("position"));
     blackboard->set("deep", std::string("1"));
-    blackboard->set("turntable_dir", std::string("1"));
     blackboard->set("tote_out_of_reach", false);
     blackboard->set("picked", false);
 
@@ -373,11 +410,12 @@ int main()
     // Blackboard keys you want to edit
     std::vector<BBValue> editable = {
         {"deep", "string", "1"},
-        {"turntable_dir", "string", "1"},
+        {"turntable_dir", "string", "home"},
         {"tote_out_of_reach", "bool", "false"},
         {"picked", "bool", "false"},
-        {"lift_position", "double", "0.5"},
-        {"telescope_target", "int", "0"},
+        {"target_lift_pos", "double", "0.5"},
+        {"target_telescope_pos", "int", "0"},
+        {"target_fork_pos", "double", "0.0"},
         {"telescope_mode", "string", "position"}
     };
 
