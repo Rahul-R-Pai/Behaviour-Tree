@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<root BTCPP_format="4" main_tree_to_execute="MainTree">
+<root BTCPP_format="3" main_tree_to_execute="MainTree">
   <BehaviorTree ID="3StageCycle">
     <AlwaysSuccess/>
   </BehaviorTree>
 
   <BehaviorTree ID="DoubleDeep">
     <Fallback>
-      <Lift_Pos lift_act_pos="rack_height"/>
+      <LiftPosition lift_position_m="{lift_position}"/>
       <Sequence>
-        <moveLift lift_target_pos="rack_height"/>
+        <MoveLift lift_target_position_m="{lift_position}" error_code="{lift_error_code}" error_msg="{lift_error_msg}"/>
         <Fallback>
-          <turn_pos turn_act_pos="home"/>
+          <TurntablePosition turntable_position="home"/>
           <Sequence>
-            <moveTurntable turntable_target_pos="dir"/>
+            <MoveTurntable turntable_target_position="{turntable_dir}" error_code="{turntable_error_code}" error_msg="{turntable_error_msg}"/>
             <SubTree ID="3StageCycle" _autoremap="true"/>
             <Fallback>
-              <Lift_Pos lift_act_pos="pick_height"/>
-              <moveLift lift_target_pos="double_pick_height"/>
+              <LiftPosition lift_position_m="0.5"/> <!-- Numeric value -->
+              <MoveLift lift_target_position_m="1.0" error_code="{lift_error_code}" error_msg="{lift_error_msg}"/> <!-- Numeric value -->
             </Fallback>
-            <moveTelescope telescope_target_pos="telepick_external_deep1_mm" control_mode=""/>
+            <MoveTelescope telescope_target_position_mm="{telescope_target}" control_mode="{telescope_mode}" error_code="{telescope_error_code}" error_msg="{telescope_error_msg}"/>
           </Sequence>
         </Fallback>
       </Sequence>
@@ -29,14 +29,14 @@
     <Sequence>
       <Switch2 case_1="1" case_2="2" variable="deep">
         <Fallback>
-          <TelePos act_position="telepick_joglimit_deep1_mm"/>
-          <moveTelescope telescope_target_pos="telepick_joglimit_deep1_mm" control_mode="speed"/>
+          <TelescopePosition telescope_position_mm="1000"/> <!-- Numeric value -->
+          <MoveTelescope telescope_target_position_mm="1000" control_mode="speed" error_code="{telescope_error_code}" error_msg="{telescope_error_msg}"/>
         </Fallback>
         <Fallback>
-          <TelePos act_position="telepick_joglimit_deep2_mm"/>
-          <moveTelescope telescope_target_pos="telepick_joglimit_deep2_mm" control_mode="speed"/>
+          <TelescopePosition telescope_position_mm="2000"/> <!-- Numeric value -->
+          <MoveTelescope telescope_target_position_mm="2000" control_mode="speed" error_code="{telescope_error_code}" error_msg="{telescope_error_msg}"/>
         </Fallback>
-        <AlwaysFailure/> <!-- Default case -->
+        <AlwaysFailure/> <!-- Default case for v3.x -->
       </Switch2>
       <Fallback>
         <Inverter>
@@ -50,8 +50,8 @@
   <BehaviorTree ID="MainTree">
     <Sequence name="OperationCycle">
       <Fallback>
-        <ForkUp_copy fork_pos="0"/>
-        <moveForks fork_pos="0"/>
+        <ForkPosition fork_position_deg="0"/>
+        <MoveForks fork_position_deg="0" error_code="{forks_error_code}" error_msg="{forks_error_msg}"/>
       </Fallback>
       <IfThenElse name="CheckTelePos">
         <TelescopeHomeSensors/>
@@ -59,11 +59,11 @@
           <BinPresenceSensors/>
           <SubTree ID="RetractTelescope" _autoremap="true"/>
           <IfThenElse>
-            <TelePos act_position="act_telescope_position"/>
+            <TelescopePosition telescope_position_mm="{current_telescope_position}"/>
             <Switch2 case_1="1" case_2="2" variable="deep">
               <SubTree ID="SingleDeep" _autoremap="true"/>
               <SubTree ID="DoubleDeep" _autoremap="true"/>
-              <AlwaysFailure/> <!-- Default case -->
+              <AlwaysFailure/> <!-- Default case for v3.x -->
             </Switch2>
           </IfThenElse>
         </IfThenElse>
@@ -75,52 +75,52 @@
   <BehaviorTree ID="RetractTelescope">
     <Switch2 case_1="1" case_2="2" variable="deep">
       <Fallback>
-        <TelePos act_position="0"/>
-        <moveTelescope telescope_target_pos="0" control_mode=""/>
+        <TelescopePosition telescope_position_mm="0"/>
+        <MoveTelescope telescope_target_position_mm="0" control_mode="position" error_code="{telescope_error_code}" error_msg="{telescope_error_msg}"/>
       </Fallback>
       <Sequence>
         <Fallback>
-          <TelePos act_position="845"/>
-          <moveTelescope telescope_target_pos="845" control_mode=""/>
+          <TelescopePosition telescope_position_mm="845"/>
+          <MoveTelescope telescope_target_position_mm="845" control_mode="position" error_code="{telescope_error_code}" error_msg="{telescope_error_msg}"/>
         </Fallback>
         <Fallback>
-          <Lift_Pos lift_act_pos="pick_height"/>
-          <moveLift lift_target_pos="pick_height"/>
+          <LiftPosition lift_position_m="0.5"/> <!-- Numeric value -->
+          <MoveLift lift_target_position_m="0.5" error_code="{lift_error_code}" error_msg="{lift_error_msg}"/> <!-- Numeric value -->
         </Fallback>
         <Fallback>
-          <TelePos act_position="0"/>
-          <moveTelescope telescope_target_pos="0" control_mode=""/>
+          <TelescopePosition telescope_position_mm="0"/>
+          <MoveTelescope telescope_target_position_mm="0" control_mode="position" error_code="{telescope_error_code}" error_msg="{telescope_error_msg}"/>
         </Fallback>
       </Sequence>
-      <AlwaysFailure/> <!-- Default case -->
+      <AlwaysFailure/> <!-- Default case for v3.x -->
     </Switch2>
   </BehaviorTree>
 
   <BehaviorTree ID="SingleDeep">
     <Fallback>
-      <Lift_Pos lift_act_pos="rack_height"/>
+      <LiftPosition lift_position_m="{lift_position}"/>
       <Sequence>
-        <moveLift lift_target_pos="rack_height"/>
+        <MoveLift lift_target_position_m="{lift_position}" error_code="{lift_error_code}" error_msg="{lift_error_msg}"/>
         <Fallback>
-          <turn_pos turn_act_pos="home"/>
+          <TurntablePosition turntable_position="home"/>
           <Sequence>
             <Switch2 case_1="0" case_2="1" variable="turntable_dir">
               <Sequence>
-                <moveTurntable turntable_target_pos="home"/>
-                <moveTelescope telescope_target_pos="telepick_internal_deep1_mm" control_mode=""/>
+                <MoveTurntable turntable_target_position="home" error_code="{turntable_error_code}" error_msg="{turntable_error_msg}"/>
+                <MoveTelescope telescope_target_position_mm="1000" control_mode="position" error_code="{telescope_error_code}" error_msg="{telescope_error_msg}"/>
                 <RackSensors/>
               </Sequence>
               <Sequence>
-                <moveTurntable turntable_target_pos="dir"/>
+                <MoveTurntable turntable_target_position="{turntable_dir}" error_code="{turntable_error_code}" error_msg="{turntable_error_msg}"/>
                 <SubTree ID="3StageCycle" _autoremap="true"/>
                 <Fallback>
-                  <Lift_Pos lift_act_pos="pick_height"/>
-                  <moveLift lift_target_pos="pick_height"/>
+                  <LiftPosition lift_position_m="0.5"/> <!-- Numeric value -->
+                  <MoveLift lift_target_position_m="0.5" error_code="{lift_error_code}" error_msg="{lift_error_msg}"/> <!-- Numeric value -->
                 </Fallback>
                 <RackSensors/>
-                <moveTelescope telescope_target_pos="telepick_external_deep1_mm" control_mode=""/>
+                <MoveTelescope telescope_target_position_mm="1000" control_mode="position" error_code="{telescope_error_code}" error_msg="{telescope_error_msg}"/>
               </Sequence>
-              <AlwaysFailure/> <!-- Default case -->
+              <AlwaysFailure/> <!-- Default case for v3.x -->
             </Switch2>
             <Fallback>
               <BinClearSensors/>
@@ -128,10 +128,10 @@
             </Fallback>
             <Fallback>
               <Inverter>
-                <ToteOutOfReach tote_out_of_reach="t02te_out_of_reach"/>
+                <ToteOutOfReach tote_out_of_reach="{tote_out_of_reach}"/>
               </Inverter>
               <Sequence>
-                <moveForks fork_pos="0"/>
+                <MoveForks fork_position_deg="0" error_code="{forks_error_code}" error_msg="{forks_error_msg}"/>
                 <SetBlackboard value="true" output_key="picked"/>
               </Sequence>
             </Fallback>
@@ -146,35 +146,47 @@
   <TreeNodesModel>
     <Condition ID="BinClearSensors" editable="true"/>
     <Condition ID="BinPresenceSensors"/>
-    <Condition ID="ForkUp_copy" editable="true">
-      <output_port name="fork_pos"/>
+    <Condition ID="ForkPosition" editable="true">
+      <output_port name="fork_position_deg" type="double" default="0.0"/>
     </Condition>
-    <Condition ID="Lift_Pos" editable="true">
-      <input_port name="lift_act_pos"/>
+    <Condition ID="LiftPosition" editable="true">
+      <input_port name="lift_position_m" type="double"/>
     </Condition>
     <Condition ID="RackSensors" editable="true"/>
-    <Condition ID="TelePos" editable="true">
-      <input_port name="act_position"/>
+    <Condition ID="TelescopePosition" editable="true">
+      <input_port name="telescope_position_mm" type="int"/>
     </Condition>
     <Condition ID="TelescopeHomeSensors"/>
     <Condition ID="ToteOutOfReach" editable="true">
-      <output_port name="tote_out_of_reach"/>
+      <input_port name="tote_out_of_reach" type="bool"/>
     </Condition>
-    <Action ID="moveForks" editable="true">
-      <input_port name="fork_pos" default="0">Fork Angle in Degrees</input_port>
+    <Action ID="MoveForks" editable="true">
+      <input_port name="fork_position_deg" type="double" default="0.0">Fork Angle in Degrees</input_port>
+      <output_port name="current_fork_position_deg" type="double"/>
+      <output_port name="error_code" type="int"/>
+      <output_port name="error_msg" type="string"/>
     </Action>
-    <Action ID="moveLift" editable="true">
-      <input_port name="lift_target_pos"/>
+    <Action ID="MoveLift" editable="true">
+      <input_port name="lift_target_position_m" type="double"/>
+      <output_port name="current_lift_position_m" type="double"/>
+      <output_port name="error_code" type="int"/>
+      <output_port name="error_msg" type="string"/>
     </Action>
-    <Action ID="moveTelescope" editable="true">
-      <input_port name="telescope_target_pos"/>
-      <input_port name="control_mode"/>
+    <Action ID="MoveTelescope" editable="true">
+      <input_port name="telescope_target_position_mm" type="int"/>
+      <input_port name="control_mode" type="string" default="position"/>
+      <output_port name="current_telescope_position_mm" type="int"/>
+      <output_port name="error_code" type="int"/>
+      <output_port name="error_msg" type="string"/>
     </Action>
-    <Action ID="moveTurntable" editable="true">
-      <input_port name="turntable_target_pos"/>
+    <Action ID="MoveTurntable" editable="true">
+      <input_port name="turntable_target_position" type="string"/>
+      <output_port name="current_turntable_position" type="string"/>
+      <output_port name="error_code" type="int"/>
+      <output_port name="error_msg" type="string"/>
     </Action>
-    <Condition ID="turn_pos" editable="true">
-      <input_port name="turn_act_pos"/>
+    <Condition ID="TurntablePosition" editable="true">
+      <input_port name="turntable_position" type="string"/>
     </Condition>
   </TreeNodesModel>
 </root>

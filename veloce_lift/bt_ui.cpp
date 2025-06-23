@@ -5,11 +5,255 @@
 #include <chrono>
 #include <map>
 #include <string>
+#include <cstdlib>
 
 struct BBValue {
     std::string key;
     std::string type; // "bool", "string", "double", or "int"
     std::string value;
+};
+
+class MoveLiftNode : public BT::StatefulActionNode
+{
+public:
+    MoveLiftNode(const std::string& name, const BT::NodeConfiguration& config)
+        : BT::StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::time_point())
+    {}
+
+    static BT::PortsList providedPorts()
+    {
+        return {
+            BT::InputPort<double>("lift_target_position_m"),
+            BT::OutputPort<double>("current_lift_position_m"),
+            BT::OutputPort<int>("error_code"),
+            BT::OutputPort<std::string>("error_msg")
+        };
+    }
+
+    BT::NodeStatus onStart() override
+    {
+        int error_code = 0;
+        std::string error_msg = "Success";
+        if (!getInput("lift_target_position_m", target_pos_))
+        {
+            error_code = 1;
+            error_msg = "Missing lift_target_position_m";
+            setOutput("error_code", error_code);
+            setOutput("error_msg", error_msg);
+            std::cout << "[Action] MoveLift failed: " << error_msg << std::endl;
+            return BT::NodeStatus::FAILURE;
+        }
+        start_time_ = std::chrono::steady_clock::now();
+        std::cout << "[Action] MoveLift started to " << target_pos_ << " m" << std::endl;
+        return BT::NodeStatus::RUNNING;
+    }
+
+    BT::NodeStatus onRunning() override
+    {
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
+        if (elapsed >= std::chrono::seconds(5))
+        {
+            setOutput("current_lift_position_m", target_pos_);
+            setOutput("error_code", 0);
+            setOutput("error_msg", "Success");
+            std::cout << "[Action] MoveLift reached target: " << target_pos_ << " m" << std::endl;
+            return BT::NodeStatus::SUCCESS;
+        }
+        return BT::NodeStatus::RUNNING;
+    }
+
+    void onHalted() override
+    {
+        std::cout << "[Action] MoveLift halted" << std::endl;
+    }
+
+private:
+    double target_pos_;
+    std::chrono::steady_clock::time_point start_time_;
+};
+
+class MoveTelescopeNode : public BT::StatefulActionNode
+{
+public:
+    MoveTelescopeNode(const std::string& name, const BT::NodeConfiguration& config)
+        : BT::StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::time_point())
+    {}
+
+    static BT::PortsList providedPorts()
+    {
+        return {
+            BT::InputPort<int>("telescope_target_position_mm"),
+            BT::InputPort<std::string>("control_mode"),
+            BT::OutputPort<int>("current_telescope_position_mm"),
+            BT::OutputPort<int>("error_code"),
+            BT::OutputPort<std::string>("error_msg")
+        };
+    }
+
+    BT::NodeStatus onStart() override
+    {
+        int error_code = 0;
+        std::string error_msg = "Success";
+        if (!getInput("telescope_target_position_mm", target_pos_))
+        {
+            error_code = 1;
+            error_msg = "Missing telescope_target_position_mm";
+            setOutput("error_code", error_code);
+            setOutput("error_msg", error_msg);
+            std::cout << "[Action] MoveTelescope failed: " << error_msg << std::endl;
+            return BT::NodeStatus::FAILURE;
+        }
+        getInput("control_mode", mode_); // Optional
+        start_time_ = std::chrono::steady_clock::now();
+        std::cout << "[Action] MoveTelescope started to " << target_pos_ << " mm (" << mode_ << ")" << std::endl;
+        return BT::NodeStatus::RUNNING;
+    }
+
+    BT::NodeStatus onRunning() override
+    {
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
+        if (elapsed >= std::chrono::seconds(5))
+        {
+            setOutput("current_telescope_position_mm", target_pos_);
+            setOutput("error_code", 0);
+            setOutput("error_msg", "Success");
+            std::cout << "[Action] MoveTelescope reached target: " << target_pos_ << " mm (" << mode_ << ")" << std::endl;
+            return BT::NodeStatus::SUCCESS;
+        }
+        return BT::NodeStatus::RUNNING;
+    }
+
+    void onHalted() override
+    {
+        std::cout << "[Action] MoveTelescope halted" << std::endl;
+    }
+
+private:
+    int target_pos_;
+    std::string mode_ = "position";
+    std::chrono::steady_clock::time_point start_time_;
+};
+
+class MoveTurntableNode : public BT::StatefulActionNode
+{
+public:
+    MoveTurntableNode(const std::string& name, const BT::NodeConfiguration& config)
+        : BT::StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::time_point())
+    {}
+
+    static BT::PortsList providedPorts()
+    {
+        return {
+            BT::InputPort<std::string>("turntable_target_position"),
+            BT::OutputPort<std::string>("current_turntable_position"),
+            BT::OutputPort<int>("error_code"),
+            BT::OutputPort<std::string>("error_msg")
+        };
+    }
+
+    BT::NodeStatus onStart() override
+    {
+        int error_code = 0;
+        std::string error_msg = "Success";
+        if (!getInput("turntable_target_position", target_pos_))
+        {
+            error_code = 1;
+            error_msg = "Missing turntable_target_position";
+            setOutput("error_code", error_code);
+            setOutput("error_msg", error_msg);
+            std::cout << "[Action] MoveTurntable failed: " << error_msg << std::endl;
+            return BT::NodeStatus::FAILURE;
+        }
+        start_time_ = std::chrono::steady_clock::now();
+        std::cout << "[Action] MoveTurntable started to " << target_pos_ << std::endl;
+        return BT::NodeStatus::RUNNING;
+    }
+
+    BT::NodeStatus onRunning() override
+    {
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
+        if (elapsed >= std::chrono::seconds(5))
+        {
+            setOutput("current_turntable_position", target_pos_);
+            setOutput("error_code", 0);
+            setOutput("error_msg", "Success");
+            std::cout << "[Action] MoveTurntable reached target: " << target_pos_ << std::endl;
+            return BT::NodeStatus::SUCCESS;
+        }
+        return BT::NodeStatus::RUNNING;
+    }
+
+    void onHalted() override
+    {
+        std::cout << "[Action] MoveTurntable halted" << std::endl;
+    }
+
+private:
+    std::string target_pos_;
+    std::chrono::steady_clock::time_point start_time_;
+};
+
+class MoveForksNode : public BT::StatefulActionNode
+{
+public:
+    MoveForksNode(const std::string& name, const BT::NodeConfiguration& config)
+        : BT::StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::time_point())
+    {}
+
+    static BT::PortsList providedPorts()
+    {
+        return {
+            BT::InputPort<double>("fork_position_deg"),
+            BT::OutputPort<double>("current_fork_position_deg"),
+            BT::OutputPort<int>("error_code"),
+            BT::OutputPort<std::string>("error_msg")
+        };
+    }
+
+    BT::NodeStatus onStart() override
+    {
+        int error_code = 0;
+        std::string error_msg = "Success";
+        if (!getInput("fork_position_deg", fork_pos_))
+        {
+            error_code = 1;
+            error_msg = "Missing fork_position_deg";
+            setOutput("error_code", error_code);
+            setOutput("error_msg", error_msg);
+            std::cout << "[Action] MoveForks failed: " << error_msg << std::endl;
+            return BT::NodeStatus::FAILURE;
+        }
+        start_time_ = std::chrono::steady_clock::now();
+        std::cout << "[Action] MoveForks started to " << fork_pos_ << " deg" << std::endl;
+        return BT::NodeStatus::RUNNING;
+    }
+
+    BT::NodeStatus onRunning() override
+    {
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
+        if (elapsed >= std::chrono::seconds(5))
+        {
+            setOutput("current_fork_position_deg", fork_pos_);
+            setOutput("error_code", 0);
+            setOutput("error_msg", "Success");
+            std::cout << "[Action] MoveForks reached target: " << fork_pos_ << " deg" << std::endl;
+            return BT::NodeStatus::SUCCESS;
+        }
+        return BT::NodeStatus::RUNNING;
+    }
+
+    void onHalted() override
+    {
+        std::cout << "[Action] MoveForks halted" << std::endl;
+    }
+
+private:
+    double fork_pos_ = 0.0;
+    std::chrono::steady_clock::time_point start_time_;
 };
 
 int main()
@@ -41,19 +285,19 @@ int main()
     // Register conditions with typed ports
     factory.registerSimpleCondition("BinClearSensors", [&conditions](BT::TreeNode&) {
         return conditions.at("BinClearSensors");
-    }, {});
+    });
 
     factory.registerSimpleCondition("BinPresenceSensors", [&conditions](BT::TreeNode&) {
         return conditions.at("BinPresenceSensors");
-    }, {});
+    });
 
     factory.registerSimpleCondition("TelescopeHomeSensors", [&conditions](BT::TreeNode&) {
         return conditions.at("TelescopeHomeSensors");
-    }, {});
+    });
 
     factory.registerSimpleCondition("RackSensors", [&conditions](BT::TreeNode&) {
         return conditions.at("RackSensors");
-    }, {});
+    });
 
     factory.registerSimpleCondition("ToteOutOfReach", [&conditions](BT::TreeNode& node) {
         bool tote_out = false;
@@ -75,7 +319,12 @@ int main()
     factory.registerSimpleCondition("LiftPosition", [&conditions](BT::TreeNode& node) {
         double lift_pos;
         if (!node.getInput("lift_position_m", lift_pos)) {
-            std::cout << "[Condition] LiftPosition: Missing lift_position_m" << std::endl;
+            std::string input;
+            if (node.getInput<std::string>("lift_position_m", input)) {
+                std::cout << "[Condition] LiftPosition: Invalid lift_position_m value: " << input << std::endl;
+            } else {
+                std::cout << "[Condition] LiftPosition: Missing lift_position_m" << std::endl;
+            }
             return BT::NodeStatus::FAILURE;
         }
         std::cout << "[Condition] LiftPosition checking: " << lift_pos << " m" << std::endl;
@@ -99,108 +348,37 @@ int main()
         return conditions.at("TelescopePosition");
     }, {BT::InputPort<int>("telescope_position_mm")});
 
-    // Register actions with typed ports and error outputs
-    factory.registerSimpleAction("MoveLift", [](BT::TreeNode& node) {
-        double target_pos;
-        int error_code = 0;
-        std::string error_msg = "Success";
-        if (!node.getInput("lift_target_position_m", target_pos)) {
-            error_code = 1;
-            error_msg = "Missing lift_target_position_m";
-            node.setOutput("error_code", error_code);
-            node.setOutput("error_msg", error_msg);
-            std::cout << "[Action] MoveLift failed: " << error_msg << std::endl;
-            return BT::NodeStatus::FAILURE;
-        }
-        node.setOutput("current_lift_position_m", target_pos); // Feedback
-        node.setOutput("error_code", error_code);
-        node.setOutput("error_msg", error_msg);
-        std::cout << "[Action] MoveLift to " << target_pos << " m" << std::endl;
-        return BT::NodeStatus::SUCCESS;
-    }, {BT::InputPort<double>("lift_target_position_m"),
-        BT::OutputPort<double>("current_lift_position_m"),
-        BT::OutputPort<int>("error_code"),
-        BT::OutputPort<std::string>("error_msg")});
+    // Register custom action nodes
+    factory.registerNodeType<MoveLiftNode>("MoveLift");
+    factory.registerNodeType<MoveTelescopeNode>("MoveTelescope");
+    factory.registerNodeType<MoveTurntableNode>("MoveTurntable");
+    factory.registerNodeType<MoveForksNode>("MoveForks");
 
-    factory.registerSimpleAction("MoveTelescope", [](BT::TreeNode& node) {
-        int target_pos;
-        std::string mode = "position"; // Default
-        int error_code = 0;
-        std::string error_msg = "Success";
-        if (!node.getInput("telescope_target_position_mm", target_pos)) {
-            error_code = 1;
-            error_msg = "Missing telescope_target_position_mm";
-            node.setOutput("error_code", error_code);
-            node.setOutput("error_msg", error_msg);
-            std::cout << "[Action] MoveTelescope failed: " << error_msg << std::endl;
-            return BT::NodeStatus::FAILURE;
-        }
-        node.getInput("control_mode", mode); // Optional
-        node.setOutput("current_telescope_position_mm", target_pos); // Feedback
-        node.setOutput("error_code", error_code);
-        node.setOutput("error_msg", error_msg);
-        std::cout << "[Action] MoveTelescope to " << target_pos << " mm (" << mode << ")" << std::endl;
-        return BT::NodeStatus::SUCCESS;
-    }, {BT::InputPort<int>("telescope_target_position_mm"),
-        BT::InputPort<std::string>("control_mode", "position"),
-        BT::OutputPort<int>("current_telescope_position_mm"),
-        BT::OutputPort<int>("error_code"),
-        BT::OutputPort<std::string>("error_msg")});
+    // Create blackboard explicitly for v3.x
+    auto blackboard = BT::Blackboard::create();
 
-    factory.registerSimpleAction("MoveTurntable", [](BT::TreeNode& node) {
-        std::string target_pos;
-        int error_code = 0;
-        std::string error_msg = "Success";
-        if (!node.getInput("turntable_target_position", target_pos)) {
-            error_code = 1;
-            error_msg = "Missing turntable_target_position";
-            node.setOutput("error_code", error_code);
-            node.setOutput("error_msg", error_msg);
-            std::cout << "[Action] MoveTurntable failed: " << error_msg << std::endl;
-            return BT::NodeStatus::FAILURE;
-        }
-        node.setOutput("current_turntable_position", target_pos); // Feedback
-        node.setOutput("error_code", error_code);
-        node.setOutput("error_msg", error_msg);
-        std::cout << "[Action] MoveTurntable to " << target_pos << std::endl;
-        return BT::NodeStatus::SUCCESS;
-    }, {BT::InputPort<std::string>("turntable_target_position"),
-        BT::OutputPort<std::string>("current_turntable_position"),
-        BT::OutputPort<int>("error_code"),
-        BT::OutputPort<std::string>("error_msg")});
+    // Initialize blackboard with valid numeric values
+    blackboard->set("lift_position", 0.5); // Default lift position (meters)
+    blackboard->set("telescope_target", 0); // Default telescope position (mm)
+    blackboard->set("telescope_mode", std::string("position"));
+    blackboard->set("deep", std::string("1"));
+    blackboard->set("turntable_dir", std::string("1"));
+    blackboard->set("tote_out_of_reach", false);
+    blackboard->set("picked", false);
 
-    factory.registerSimpleAction("MoveForks", [](BT::TreeNode& node) {
-        double fork_pos = 0.0; // Default value
-        int error_code = 0;
-        std::string error_msg = "Success";
-        if (!node.getInput("fork_position_deg", fork_pos)) {
-            error_code = 1;
-            error_msg = "Missing fork_position_deg";
-            node.setOutput("error_code", error_code);
-            node.setOutput("error_msg", error_msg);
-            std::cout << "[Action] MoveForks failed: " << error_msg << std::endl;
-            return BT::NodeStatus::FAILURE;
-        }
-        node.setOutput("current_fork_position_deg", fork_pos); // Feedback
-        node.setOutput("error_code", error_code);
-        node.setOutput("error_msg", error_msg);
-        std::cout << "[Action] MoveForks to " << fork_pos << " deg" << std::endl;
-        return BT::NodeStatus::SUCCESS;
-    }, {BT::InputPort<double>("fork_position_deg", 0.0),
-        BT::OutputPort<double>("current_fork_position_deg"),
-        BT::OutputPort<int>("error_code"),
-        BT::OutputPort<std::string>("error_msg")});
-
-    // Load your tree (blackboard managed internally in v4.x)
-    BT::Tree tree = factory.createTreeFromFile("/workspace/behavior_tree.xml");
-    BT::Groot2Publisher publisher(tree);
+    // Load your tree
+    BT::Tree tree = factory.createTreeFromFile("./../veloce_lift_new.xml", blackboard);
+    BT::Groot2Publisher publisher(tree); // Use v3.x ZMQ publisher
 
     // Blackboard keys you want to edit
     std::vector<BBValue> editable = {
         {"deep", "string", "1"},
         {"turntable_dir", "string", "1"},
         {"tote_out_of_reach", "bool", "false"},
-        {"picked", "bool", "false"}
+        {"picked", "bool", "false"},
+        {"lift_position", "double", "0.5"},
+        {"telescope_target", "int", "0"},
+        {"telescope_mode", "string", "position"}
     };
 
     // Init ncurses
@@ -226,7 +404,7 @@ int main()
         {
             bool active = (selected == (int)i);
             attron(active ? A_REVERSE : A_NORMAL);
-            auto status = conditions[sensors[i]] == BT::NodeStatus::SUCCESS ? "[✓]" : "[ ]";
+            auto status = conditions[sensors[i]] == BT::NodeStatus::SUCCESS ? "[o]" : "[ ]";
             mvprintw(row++, 2, "Sensor %s %s", status, sensors[i].c_str());
             attroff(active ? A_REVERSE : A_NORMAL);
         }
@@ -268,24 +446,50 @@ int main()
                 mvprintw(row + 1, 2, "Enter new value for %s: ", editable[i].key.c_str());
                 char input[64];
                 getstr(input);
-                editable[i].value = input;
+                // Validate numeric inputs
+                if (editable[i].type == "double") {
+                    try {
+                        std::stod(input);
+                        editable[i].value = input;
+                    } catch (const std::exception& e) {
+                        mvprintw(row + 2, 2, "Invalid double value: %s", input);
+                        refresh();
+                        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                        continue;
+                    }
+                } else if (editable[i].type == "int") {
+                    try {
+                        std::stoi(input);
+                        editable[i].value = input;
+                    } catch (const std::exception& e) {
+                        mvprintw(row + 2, 2, "Invalid int value: %s", input);
+                        refresh();
+                        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                        continue;
+                    }
+                } else {
+                    editable[i].value = input;
+                }
                 noecho();
                 curs_set(0);
             }
         }
         else if (ch == KEY_F(5))
         {
-            auto blackboard = tree.blackboard();
             for (const auto& val : editable)
             {
-                if (val.type == "string")
-                    blackboard->set(val.key, val.value);
-                else if (val.type == "bool")
-                    blackboard->set(val.key, (val.value == "true" || val.value == "1"));
-                else if (val.type == "double")
-                    blackboard->set(val.key, std::stod(val.value));
-                else if (val.type == "int")
-                    blackboard->set(val.key, std::stoi(val.value));
+                try {
+                    if (val.type == "string")
+                        blackboard->set(val.key, val.value);
+                    else if (val.type == "bool")
+                        blackboard->set(val.key, (val.value == "true" || val.value == "1"));
+                    else if (val.type == "double")
+                        blackboard->set(val.key, std::stod(val.value));
+                    else if (val.type == "int")
+                        blackboard->set(val.key, std::stoi(val.value));
+                } catch (const std::exception& e) {
+                    std::cout << "Error setting blackboard key " << val.key << ": " << e.what() << std::endl;
+                }
             }
 
             tree.tickOnce();
