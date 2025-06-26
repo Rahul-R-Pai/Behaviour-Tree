@@ -209,7 +209,6 @@
     </Fallback>
   </BehaviorTree>
 
-  <!-- Description of Node Models (used by Groot) -->
   <TreeNodesModel>
     <Condition ID="BinClearSensors"
                editable="true"/>

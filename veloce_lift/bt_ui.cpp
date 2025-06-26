@@ -5,7 +5,7 @@
 #include <chrono>
 #include <map>
 #include <string>
-#include <functional> // For std::bind
+#include <functional>
 
 using namespace BT;
 
@@ -22,9 +22,8 @@ std::map<std::string, std::string> current_positions = {
     {"current_turntable_pos", "home"}
 };
 
-std::map<std::string, NodeStatus> conditions; // Moved to global scope for access in condition functions
+std::map<std::string, NodeStatus> conditions;
 
-// Condition functions
 NodeStatus CheckBinClearSensors() {
     return conditions.at("BinClearSensors");
 }
@@ -56,8 +55,7 @@ NodeStatus CheckTurntablePosition(TreeNode& node) {
     }
     auto current_pos = current_positions["current_turntable_pos"];
     bool is_equal = (current_pos == target_pos);
-    std::cout << "[Condition] TurntablePosition checking: current=" << current_pos
-              << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+    std::cout << "[Condition] TurntablePosition checking: current=" << current_pos<< ", target=" << target_pos << ", equal=" << is_equal << std::endl;
     conditions["TurntablePosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
     return conditions["TurntablePosition"];
 }
@@ -76,8 +74,7 @@ NodeStatus CheckLiftPosition(TreeNode& node) {
         return NodeStatus::FAILURE;
     }
     bool is_equal = std::abs(current_pos - target_pos) < 0.0001;
-    std::cout << "[Condition] LiftPosition checking: current=" << current_pos
-              << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+    std::cout << "[Condition] LiftPosition checking: current=" << current_pos<< ", target=" << target_pos << ", equal=" << is_equal << std::endl;
     conditions["LiftPosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
     return conditions["LiftPosition"];
 }
@@ -97,8 +94,7 @@ NodeStatus CheckForkPosition(TreeNode& node) {
     }
     bool is_equal = std::abs(current_pos - target_pos) < 0.0001;
     node.setOutput("fork_position_deg", current_pos);
-    std::cout << "[Condition] ForkPosition checking: current=" << current_pos
-              << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+    std::cout << "[Condition] ForkPosition checking: current=" << current_pos<< ", target=" << target_pos << ", equal=" << is_equal << std::endl;
     conditions["ForkPosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
     return conditions["ForkPosition"];
 }
@@ -117,18 +113,15 @@ NodeStatus CheckTelescopePosition(TreeNode& node) {
         return NodeStatus::FAILURE;
     }
     bool is_equal = (current_pos == target_pos);
-    std::cout << "[Condition] TelescopePosition checking: current=" << current_pos
-              << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+    std::cout << "[Condition] TelescopePosition checking: current=" << current_pos<< ", target=" << target_pos << ", equal=" << is_equal << std::endl;
     conditions["TelescopePosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
     return conditions["TelescopePosition"];
 }
 
-// MoveLiftNode, MoveTelescopeNode, MoveTurntableNode, MoveForksNode remain unchanged
 class MoveLiftNode : public StatefulActionNode
 {
 public:
-    MoveLiftNode(const std::string& name, const NodeConfig& config)
-        : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now())
+    MoveLiftNode(const std::string& name, const NodeConfig& config) : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now())
     {}
 
     static PortsList providedPorts()
@@ -188,8 +181,7 @@ private:
 class MoveTelescopeNode : public StatefulActionNode
 {
 public:
-    MoveTelescopeNode(const std::string& name, const NodeConfig& config)
-        : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now())
+    MoveTelescopeNode(const std::string& name, const NodeConfig& config) : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now())
     {}
 
     static PortsList providedPorts()
@@ -252,8 +244,7 @@ private:
 class MoveTurntableNode : public StatefulActionNode
 {
 public:
-    MoveTurntableNode(const std::string& name, const NodeConfig& config)
-        : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now())
+    MoveTurntableNode(const std::string& name, const NodeConfig& config) : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now())
     {}
 
     static PortsList providedPorts()
@@ -313,8 +304,7 @@ private:
 class MoveForksNode : public StatefulActionNode
 {
 public:
-    MoveForksNode(const std::string& name, const NodeConfig& config)
-        : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now())
+    MoveForksNode(const std::string& name, const NodeConfig& config) : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now())
     {}
 
     static PortsList providedPorts()
@@ -375,7 +365,6 @@ int main()
 {
     BehaviorTreeFactory factory;
 
-    // Initialize conditions map
     std::vector<std::string> sensors = {
         "BinClearSensors",
         "BinPresenceSensors",
@@ -393,21 +382,15 @@ int main()
         conditions[s] = NodeStatus::FAILURE;
     }
 
-    // Register conditions using std::bind
     factory.registerSimpleCondition("BinClearSensors", std::bind(CheckBinClearSensors));
     factory.registerSimpleCondition("BinPresenceSensors", std::bind(CheckBinPresenceSensors));
     factory.registerSimpleCondition("TelescopeHomeSensors", std::bind(CheckTelescopeHomeSensors));
     factory.registerSimpleCondition("RackSensors", std::bind(CheckRackSensors));
-    factory.registerSimpleCondition("ToteOutOfReach", std::bind(CheckToteOutOfReach, std::placeholders::_1),
-                                   {OutputPort<bool>("tote_out_of_reach")});
-    factory.registerSimpleCondition("TurntablePosition", std::bind(CheckTurntablePosition, std::placeholders::_1),
-                                   {InputPort<std::string>("turntable_position")});
-    factory.registerSimpleCondition("LiftPosition", std::bind(CheckLiftPosition, std::placeholders::_1),
-                                   {InputPort<double>("lift_position_m")});
-    factory.registerSimpleCondition("ForkPosition", std::bind(CheckForkPosition, std::placeholders::_1),
-                                   {InputPort<double>("fork_position_deg"), OutputPort<double>("fork_position_deg")});
-    factory.registerSimpleCondition("TelescopePosition", std::bind(CheckTelescopePosition, std::placeholders::_1),
-                                   {InputPort<int>("telescope_position_mm")});
+    factory.registerSimpleCondition("ToteOutOfReach", std::bind(CheckToteOutOfReach, std::placeholders::_1),{OutputPort<bool>("tote_out_of_reach")});
+    factory.registerSimpleCondition("TurntablePosition", std::bind(CheckTurntablePosition, std::placeholders::_1),{InputPort<std::string>("turntable_position")});
+    factory.registerSimpleCondition("LiftPosition", std::bind(CheckLiftPosition, std::placeholders::_1),{InputPort<double>("lift_position_m")});
+    factory.registerSimpleCondition("ForkPosition", std::bind(CheckForkPosition, std::placeholders::_1),{InputPort<double>("fork_position_deg"), OutputPort<double>("fork_position_deg")});
+    factory.registerSimpleCondition("TelescopePosition", std::bind(CheckTelescopePosition, std::placeholders::_1),{InputPort<int>("telescope_position_mm")});
 
     factory.registerNodeType<MoveLiftNode>("MoveLift");
     factory.registerNodeType<MoveTelescopeNode>("MoveTelescope");
@@ -440,8 +423,8 @@ int main()
     };
 
     initscr();
-    start_color();
-    use_default_colors();
+    // start_color();
+    // use_default_colors();
     noecho();
     cbreak();
     curs_set(0);
@@ -536,16 +519,16 @@ int main()
                         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     }
                 } else if (editable[i].key == "deep") {
-                    if (input_str != "single" && input_str != "double" && input_str != "triple" && input_str != "undefined") {
-                        mvprintw(row + 2, 1, "Invalid deep value: %s (use 'single', 'double', 'triple', or 'undefined')", input_str.c_str());
+                    if (input_str != "single" && input_str != "double") {
+                        mvprintw(row + 2, 1, "Invalid deep value: %s (use 'single', 'double')", input_str.c_str());
                         refresh();
                         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     } else {
                         editable[i].value = input_str;
                     }
                 } else if (editable[i].key == "turntable_dir") {
-                    if (input_str != "home" && input_str != "left" && input_str != "right" && input_str != "undefined") {
-                        mvprintw(row + 2, 1, "Invalid turntable_dir: %s (use 'home', 'left', 'right', or 'undefined')", input_str.c_str());
+                    if (input_str != "home" && input_str != "left" && input_str != "right") {
+                        mvprintw(row + 2, 1, "Invalid turntable_dir: %s (use 'home', 'left', 'right')", input_str.c_str());
                         refresh();
                         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     } else {
@@ -560,6 +543,8 @@ int main()
         }
         else if (ch == KEY_F(5))
         {
+            // Temporarily exit ncurses to allow console output
+            endwin();
             std::string deep_value;
             if (blackboard->get("deep", deep_value)) {
                 std::cout << "[Debug] Blackboard deep = " << deep_value << " (type: string)" << std::endl;
@@ -587,6 +572,20 @@ int main()
 
             NodeStatus status = tree.tickWhileRunning();
             std::cout << "[Debug] Tree status: " << status << std::endl;
+
+            // Pause to ensure console output is visible
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
+            // Reinitialize ncurses
+            initscr();
+            // start_color();
+            // use_default_colors();
+            noecho();
+            cbreak();
+            curs_set(0);
+            keypad(stdscr, TRUE);
+            timeout(100);
+
             show_tick_message = true;
         }
     }
