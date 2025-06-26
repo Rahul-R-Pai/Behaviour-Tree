@@ -5,7 +5,7 @@
 #include <chrono>
 #include <map>
 #include <string>
-#include <cstdlib>
+#include <functional> // For std::bind
 
 using namespace BT;
 
@@ -22,6 +22,108 @@ std::map<std::string, std::string> current_positions = {
     {"current_turntable_pos", "home"}
 };
 
+std::map<std::string, NodeStatus> conditions; // Moved to global scope for access in condition functions
+
+// Condition functions
+NodeStatus CheckBinClearSensors() {
+    return conditions.at("BinClearSensors");
+}
+
+NodeStatus CheckBinPresenceSensors() {
+    return conditions.at("BinPresenceSensors");
+}
+
+NodeStatus CheckTelescopeHomeSensors() {
+    return conditions.at("TelescopeHomeSensors");
+}
+
+NodeStatus CheckRackSensors() {
+    return conditions.at("RackSensors");
+}
+
+NodeStatus CheckToteOutOfReach(TreeNode& node) {
+    bool tote_out = false;
+    node.setOutput("tote_out_of_reach", tote_out);
+    std::cout << "[Condition] ToteOutOfReach setting tote_out_of_reach: " << tote_out << std::endl;
+    return conditions.at("ToteOutOfReach");
+}
+
+NodeStatus CheckTurntablePosition(TreeNode& node) {
+    std::string target_pos;
+    if (!node.getInput("turntable_position", target_pos)) {
+        std::cout << "[Condition] TurntablePosition: Missing turntable_position" << std::endl;
+        return NodeStatus::FAILURE;
+    }
+    auto current_pos = current_positions["current_turntable_pos"];
+    bool is_equal = (current_pos == target_pos);
+    std::cout << "[Condition] TurntablePosition checking: current=" << current_pos
+              << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+    conditions["TurntablePosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+    return conditions["TurntablePosition"];
+}
+
+NodeStatus CheckLiftPosition(TreeNode& node) {
+    double target_pos;
+    if (!node.getInput("lift_position_m", target_pos)) {
+        std::cout << "[Condition] LiftPosition: Missing lift_position_m" << std::endl;
+        return NodeStatus::FAILURE;
+    }
+    double current_pos;
+    try {
+        current_pos = std::stod(current_positions["current_lift_pos"]);
+    } catch (const std::exception& e) {
+        std::cout << "[Condition] LiftPosition: Invalid current_lift_pos: " << current_positions["current_lift_pos"] << std::endl;
+        return NodeStatus::FAILURE;
+    }
+    bool is_equal = std::abs(current_pos - target_pos) < 0.0001;
+    std::cout << "[Condition] LiftPosition checking: current=" << current_pos
+              << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+    conditions["LiftPosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+    return conditions["LiftPosition"];
+}
+
+NodeStatus CheckForkPosition(TreeNode& node) {
+    double target_pos;
+    if (!node.getInput("fork_position_deg", target_pos)) {
+        std::cout << "[Condition] ForkPosition: Missing fork_position_deg" << std::endl;
+        return NodeStatus::FAILURE;
+    }
+    double current_pos;
+    try {
+        current_pos = std::stod(current_positions["current_fork_pos"]);
+    } catch (const std::exception& e) {
+        std::cout << "[Condition] ForkPosition: Invalid current_fork_pos: " << current_positions["current_fork_pos"] << std::endl;
+        return NodeStatus::FAILURE;
+    }
+    bool is_equal = std::abs(current_pos - target_pos) < 0.0001;
+    node.setOutput("fork_position_deg", current_pos);
+    std::cout << "[Condition] ForkPosition checking: current=" << current_pos
+              << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+    conditions["ForkPosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+    return conditions["ForkPosition"];
+}
+
+NodeStatus CheckTelescopePosition(TreeNode& node) {
+    int target_pos;
+    if (!node.getInput("telescope_position_mm", target_pos)) {
+        std::cout << "[Condition] TelescopePosition: Missing telescope_position_mm" << std::endl;
+        return NodeStatus::FAILURE;
+    }
+    int current_pos;
+    try {
+        current_pos = std::stoi(current_positions["current_telescope_pos"]);
+    } catch (const std::exception& e) {
+        std::cout << "[Condition] TelescopePosition: Invalid current_telescope_pos: " << current_positions["current_telescope_pos"] << std::endl;
+        return NodeStatus::FAILURE;
+    }
+    bool is_equal = (current_pos == target_pos);
+    std::cout << "[Condition] TelescopePosition checking: current=" << current_pos
+              << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+    conditions["TelescopePosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+    return conditions["TelescopePosition"];
+}
+
+// MoveLiftNode, MoveTelescopeNode, MoveTurntableNode, MoveForksNode remain unchanged
 class MoveLiftNode : public StatefulActionNode
 {
 public:
@@ -247,7 +349,6 @@ public:
     {
         auto now = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
-        // std::cout << "[Action] MoveForks running, elapsed: " << elapsed.count() << " seconds" << std::endl;
         if (elapsed >= std::chrono::seconds(3))
         {
             setOutput("current_fork_position_deg", fork_target_pos_);
@@ -274,8 +375,7 @@ int main()
 {
     BehaviorTreeFactory factory;
 
-    std::map<std::string, NodeStatus> conditions;
-
+    // Initialize conditions map
     std::vector<std::string> sensors = {
         "BinClearSensors",
         "BinPresenceSensors",
@@ -293,85 +393,21 @@ int main()
         conditions[s] = NodeStatus::FAILURE;
     }
 
-    factory.registerSimpleCondition("BinClearSensors", [&conditions](TreeNode&) {
-        return conditions.at("BinClearSensors");
-    });
-
-    factory.registerSimpleCondition("BinPresenceSensors", [&conditions](TreeNode&) {
-        return conditions.at("BinPresenceSensors");
-    });
-
-    factory.registerSimpleCondition("TelescopeHomeSensors", [&conditions](TreeNode&) {
-        return conditions.at("TelescopeHomeSensors");
-    });
-
-    factory.registerSimpleCondition("RackSensors", [&conditions](TreeNode&) {
-        return conditions.at("RackSensors");
-    });
-
-    factory.registerSimpleCondition("ToteOutOfReach", [&conditions](TreeNode& node) {
-        bool tote_out = false;
-        node.setOutput("tote_out_of_reach", tote_out);
-        std::cout << "[Condition] ToteOutOfReach setting tote_out_of_reach: " << tote_out << std::endl;
-        return conditions.at("ToteOutOfReach");
-    }, {OutputPort<bool>("tote_out_of_reach")});
-
-    factory.registerSimpleCondition("TurntablePosition", [&conditions](TreeNode& node) {
-        std::string target_pos;
-        if (!node.getInput("turntable_position", target_pos)) {
-            std::cout << "[Condition] TurntablePosition: Missing turntable_position" << std::endl;
-            return NodeStatus::FAILURE;
-        }
-        auto current_pos = current_positions["current_turntable_pos"];
-        bool is_equal = (current_pos == target_pos);
-        std::cout << "[Condition] TurntablePosition checking: current=" << current_pos
-                  << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
-        conditions["TurntablePosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
-        return conditions["TurntablePosition"];
-    }, {InputPort<std::string>("turntable_position")});
-
-    factory.registerSimpleCondition("LiftPosition", [&conditions](TreeNode& node) {
-        double target_pos;
-        if (!node.getInput("lift_position_m", target_pos)) {
-            std::cout << "[Condition] LiftPosition: Missing lift_position_m" << std::endl;
-            return NodeStatus::FAILURE;
-        }
-        double current_pos = std::stod(current_positions["current_lift_pos"]);
-        bool is_equal = std::abs(current_pos - target_pos) < 0.0001;
-        std::cout << "[Condition] LiftPosition checking: current=" << current_pos
-                  << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
-        conditions["LiftPosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
-        return conditions["LiftPosition"];
-    }, {InputPort<double>("lift_position_m")});
-
-    factory.registerSimpleCondition("ForkPosition", [&conditions](TreeNode& node) {
-        double target_pos;
-        if (!node.getInput("fork_position_deg", target_pos)) {
-            std::cout << "[Condition] ForkPosition: Missing fork_position_deg" << std::endl;
-            return NodeStatus::FAILURE;
-        }
-        double current_pos = std::stod(current_positions["current_fork_pos"]);
-        bool is_equal = std::abs(current_pos - target_pos) < 0.0001;
-        node.setOutput("fork_position_deg", current_pos);
-        std::cout << "[Condition] ForkPosition checking: current=" << current_pos
-                  << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
-        conditions["ForkPosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
-        return conditions["ForkPosition"];
-    }, {InputPort<double>("fork_position_deg"), OutputPort<double>("fork_position_deg")});
-
-    factory.registerSimpleCondition("TelescopePosition", [&conditions](TreeNode& node) {
-        int target_pos;
-        if (!node.getInput("telescope_position_mm", target_pos)) {
-            std::cout << "[Condition] TelescopePosition: Missing telescope_position_mm" << std::endl;
-            return NodeStatus::FAILURE;
-        }
-        int current_pos = std::stoi(current_positions["current_telescope_pos"]);
-        bool is_equal = (current_pos == target_pos);
-        std::cout << "[Condition] TelescopePosition checking: current=" << current_pos
-                  << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
-        conditions["TelescopePosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
-        return conditions["TelescopePosition"];
-    }, {InputPort<int>("telescope_position_mm")});
+    // Register conditions using std::bind
+    factory.registerSimpleCondition("BinClearSensors", std::bind(CheckBinClearSensors));
+    factory.registerSimpleCondition("BinPresenceSensors", std::bind(CheckBinPresenceSensors));
+    factory.registerSimpleCondition("TelescopeHomeSensors", std::bind(CheckTelescopeHomeSensors));
+    factory.registerSimpleCondition("RackSensors", std::bind(CheckRackSensors));
+    factory.registerSimpleCondition("ToteOutOfReach", std::bind(CheckToteOutOfReach, std::placeholders::_1),
+                                   {OutputPort<bool>("tote_out_of_reach")});
+    factory.registerSimpleCondition("TurntablePosition", std::bind(CheckTurntablePosition, std::placeholders::_1),
+                                   {InputPort<std::string>("turntable_position")});
+    factory.registerSimpleCondition("LiftPosition", std::bind(CheckLiftPosition, std::placeholders::_1),
+                                   {InputPort<double>("lift_position_m")});
+    factory.registerSimpleCondition("ForkPosition", std::bind(CheckForkPosition, std::placeholders::_1),
+                                   {InputPort<double>("fork_position_deg"), OutputPort<double>("fork_position_deg")});
+    factory.registerSimpleCondition("TelescopePosition", std::bind(CheckTelescopePosition, std::placeholders::_1),
+                                   {InputPort<int>("telescope_position_mm")});
 
     factory.registerNodeType<MoveLiftNode>("MoveLift");
     factory.registerNodeType<MoveTelescopeNode>("MoveTelescope");
@@ -404,10 +440,13 @@ int main()
     };
 
     initscr();
+    start_color();
+    use_default_colors();
     noecho();
     cbreak();
     curs_set(0);
     keypad(stdscr, TRUE);
+    timeout(100);
 
     int selected = 0;
     bool show_tick_message = false;
@@ -426,7 +465,7 @@ int main()
             bool active = (selected == (int)i);
             attron(active ? A_REVERSE : A_NORMAL);
             auto status = conditions[sensors[i]] == NodeStatus::SUCCESS ? "[o]" : "[ ]";
-            mvprintw(row++, 2, "Sensor %s %s", status, sensors[i].c_str());
+            mvprintw(row++, 2, "Sensor %-20s %s", sensors[i].c_str(), status);
             attroff(active ? A_REVERSE : A_NORMAL);
         }
 
@@ -441,6 +480,7 @@ int main()
 
         if (show_tick_message) {
             mvprintw(row + 1, 0, "Ticked MainTree!");
+            refresh();
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
             show_tick_message = false;
         }
@@ -448,6 +488,7 @@ int main()
         refresh();
 
         int ch = getch();
+        if (ch == ERR) continue;
 
         if (ch == 'q') break;
         else if (ch == KEY_DOWN && selected < (int)(sensors.size() + editable.size()) - 1) selected++;
@@ -465,46 +506,53 @@ int main()
                 curs_set(1);
                 int i = selected - sensors.size();
                 mvprintw(row + 1, 0, "Enter new value for %s: ", editable[i].key.c_str());
-                char input[64];
-                getstr(input);
+                char input[64] = {0};
+                getnstr(input, sizeof(input) - 1);
+                std::string input_str = input;
+                if (input_str.empty()) {
+                    mvprintw(row + 2, 1, "Error: Input cannot be empty");
+                    refresh();
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                    noecho();
+                    curs_set(0);
+                    continue;
+                }
                 if (editable[i].type == "double") {
                     try {
-                        std::stod(input);
-                        editable[i].value = input;
+                        std::stod(input_str);
+                        editable[i].value = input_str;
                     } catch (const std::exception& e) {
-                        mvprintw(row + 2, 1, "Invalid double value: %s", input);
+                        mvprintw(row + 2, 1, "Invalid double value: %s", input_str.c_str());
                         refresh();
                         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                        continue;
                     }
                 } else if (editable[i].type == "int") {
                     try {
-                        std::stoi(input);
-                        editable[i].value = input;
+                        std::stoi(input_str);
+                        editable[i].value = input_str;
                     } catch (const std::exception& e) {
-                        mvprintw(row + 2, 1, "Invalid int value: %s", input);
+                        mvprintw(row + 2, 1, "Invalid int value: %s", input_str.c_str());
                         refresh();
                         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                        continue;
                     }
                 } else if (editable[i].key == "deep") {
-                    if (std::string(input) != "single" && std::string(input) != "double") {
-                        mvprintw(row + 2, 1, "Invalid deep value: %s (use 'single' or 'double')", input);
+                    if (input_str != "single" && input_str != "double" && input_str != "triple" && input_str != "undefined") {
+                        mvprintw(row + 2, 1, "Invalid deep value: %s (use 'single', 'double', 'triple', or 'undefined')", input_str.c_str());
                         refresh();
                         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                        continue;
+                    } else {
+                        editable[i].value = input_str;
                     }
-                    editable[i].value = input;
                 } else if (editable[i].key == "turntable_dir") {
-                    if (std::string(input) != "home" && std::string(input) != "left" && std::string(input) != "right") {
-                        mvprintw(row + 2, 1, "Invalid turntable_dir: %s (use 'home', 'left', or 'right')", input);
+                    if (input_str != "home" && input_str != "left" && input_str != "right" && input_str != "undefined") {
+                        mvprintw(row + 2, 1, "Invalid turntable_dir: %s (use 'home', 'left', 'right', or 'undefined')", input_str.c_str());
                         refresh();
                         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                        continue;
+                    } else {
+                        editable[i].value = input_str;
                     }
-                    editable[i].value = input;
                 } else {
-                    editable[i].value = input;
+                    editable[i].value = input_str;
                 }
                 noecho();
                 curs_set(0);
