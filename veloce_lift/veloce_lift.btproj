@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<root BTCPP_format="3" project_name="Project">
+<root BTCPP_format="4" project_name="Project">
     <include path="veloce_lift_new.xml"/>
     <!-- Description of Node Models (used by Groot) -->
     <TreeNodesModel>
         <Condition ID="BinClearSensors" editable="true"/>
         <Condition ID="BinPresenceSensors"/>
         <Condition ID="ForkPosition" editable="true">
+            <input_port name="fork_position_deg" type="double"/>
             <output_port name="fork_position_deg" default="0.0" type="double"/>
         </Condition>
         <Condition ID="LiftPosition" editable="true">
             <input_port name="lift_position_m" type="double"/>
         </Condition>
         <Action ID="MoveForks" editable="true">
-            <input_port name="fork_position_deg" default="0.0" type="double">Fork Angle in Degrees</input_port>
+            <input_port name="fork_position_deg" default="0.0" type="double"/>
             <output_port name="current_fork_position_deg" type="double"/>
             <output_port name="error_code" type="int"/>
             <output_port name="error_msg" type="string"/>
@@ -42,7 +43,7 @@
             <input_port name="telescope_position_mm" type="int"/>
         </Condition>
         <Condition ID="ToteOutOfReach" editable="true">
-            <input_port name="tote_out_of_reach" type="bool"/>
+            <output_port name="tote_out_of_reach" type="bool"/>
         </Condition>
         <Condition ID="TurntablePosition" editable="true">
             <input_port name="turntable_position" type="string"/>
