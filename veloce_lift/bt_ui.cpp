@@ -25,18 +25,42 @@ std::map<std::string, std::string> current_positions = {
 std::map<std::string, NodeStatus> conditions;
 
 NodeStatus CheckBinClearSensors() {
+    if (conditions.at("BinClearSensors") == NodeStatus::FAILURE) {
+        std::cout << "[Condition] BinClearSensors: Failure" << std::endl;
+    }
+    else if (conditions.at("BinClearSensors") == NodeStatus::SUCCESS) {
+        std::cout << "[Condition] BinClearSensors: Success" << std::endl;
+    }    
     return conditions.at("BinClearSensors");
 }
 
 NodeStatus CheckBinPresenceSensors() {
+    if (conditions.at("BinPresenceSensors") == NodeStatus::FAILURE) {
+        std::cout << "[Condition] BinPresenceSensors: Failure" << std::endl;
+    }
+    else if (conditions.at("BinPresenceSensors") == NodeStatus::SUCCESS) {
+        std::cout << "[Condition] BinPresenceSensors: Success" << std::endl;
+    }
     return conditions.at("BinPresenceSensors");
 }
 
 NodeStatus CheckTelescopeHomeSensors() {
+    if (conditions.at("TelescopeHomeSensors") == NodeStatus::FAILURE) {
+        std::cout << "[Condition] TelescopeHomeSensors: Failure" << std::endl;
+    }
+    else if (conditions.at("TelescopeHomeSensors") == NodeStatus::SUCCESS) {
+        std::cout << "[Condition] TelescopeHomeSensors: Success" << std::endl;
+    }
     return conditions.at("TelescopeHomeSensors");
 }
 
 NodeStatus CheckRackSensors() {
+    if (conditions.at("RackSensors") == NodeStatus::FAILURE) {
+        std::cout << "[Condition] RackSensors: Failure" << std::endl;
+    }
+    else if (conditions.at("RackSensors") == NodeStatus::SUCCESS) {
+        std::cout << "[Condition] RackSensors: Success" << std::endl;
+    }
     return conditions.at("RackSensors");
 }
 
