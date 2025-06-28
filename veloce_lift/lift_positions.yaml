@@ -1,0 +1,188 @@
+
+#########################################################################
+#######    ██████   █████  ███    ██  ██████  ███████ ██████     ########
+#######    ██   ██ ██   ██ ████   ██ ██       ██      ██   ██    ########
+#######    ██   ██ ███████ ██ ██  ██ ██   ███ █████   ██████     ########
+#######    ██   ██ ██   ██ ██  ██ ██ ██    ██ ██      ██   ██    ########
+#######    ██████  ██   ██ ██   ████  ██████  ███████ ██   ██    ########
+#########################################################################
+# Incorrect Configuration may lead to permanent damage to Veloce's Lift #
+                                                   
+# Configures the Veloce's Lift Control System.
+# 'axis_settings': Defines motion parameters for the turntable, lift, and direction-specific settings for the telescope and forks and article specific overrides.
+# 'operation_settings': Specifies operational parameters for different levels of the lift, turntable direction, lift position, angle, and telescope position at various depths.
+
+lift_control:
+  axis_settings:
+    turntable: {velocity_mm_s: 600, acceleration_mm_s2: 300}
+    lift: {velocity_mm_s: 600, acceleration_mm_s2: 300}
+    telescope: {velocity_mm_s: 600, acceleration_mm_s2: 500}
+    forks: {velocity_mm_s: 1000, acceleration_mm_s2: 500}
+
+    article_specific:
+      - type: Magazine
+        dimensions: {width_mm: 350, height_mm: 560, depth_mm: 350}
+        telescope: {velocity_mm_s: 600, acceleration_mm_s2: 500}
+        forks: {velocity_mm_s: 1000, acceleration_mm_s2: 500}
+      - type: Tote
+        dimensions: {width_mm: 400, height_mm: 400, depth_mm: 600}
+        telescope: {velocity_mm_s: 600, acceleration_mm_s2: 1000}
+        forks: {velocity_mm_s: 1000, acceleration_mm_s2: 500}
+      - type: Carton
+        dimensions: {width_mm: 410, height_mm: 410, depth_mm: 600}
+        telescope: {velocity_mm_s: 600, acceleration_mm_s2: 1000}
+        forks: {velocity_mm_s: 1000, acceleration_mm_s2: 500}
+
+  operation_settings:
+    - lift_level: 1
+      turntable:
+        - direction: Left
+          lift_position_mm: 500
+          angle_deg: -90
+          telescope: 
+            - {depth: 1, length_mm: 800, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1600, fork_angle_deg: 90}
+        - direction: Middle
+          lift_position_mm: 450
+          angle_deg: 0
+          telescope: 
+            - {depth: 1, length_mm: 700, fork_angle_deg: 90}
+        - direction: Right
+          lift_position_mm: 800
+          angle_deg: 90
+          telescope: 
+            - {depth: 1, length_mm: 500, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1000, fork_angle_deg: 90}
+    - lift_level: 2
+      turntable:
+        - direction: Left
+          lift_position_mm: 1000
+          angle_deg: -90
+          telescope: 
+            - {depth: 1, length_mm: 800, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1600, fork_angle_deg: 90}
+        - direction: Middle
+          lift_position_mm: 950
+          angle_deg: 0
+          telescope: 
+            - {depth: 1, length_mm: 700, fork_angle_deg: 90}
+        - direction: Right
+          lift_position_mm: 1400
+          angle_deg: 90
+          telescope: 
+            - {depth: 1, length_mm: 500, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1000, fork_angle_deg: 90}
+    - lift_level: 3
+      turntable:
+        - direction: Left
+          lift_position_mm: 1500
+          angle_deg: -90
+          telescope: 
+            - {depth: 1, length_mm: 800, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1600, fork_angle_deg: 90}
+        - direction: Middle
+          lift_position_mm: 1450
+          angle_deg: 0
+          telescope: 
+            - {depth: 1, length_mm: 700, fork_angle_deg: 90}
+        - direction: Right
+          lift_position_mm: 1800
+          angle_deg: 90
+          telescope: 
+            - {depth: 1, length_mm: 500, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1000, fork_angle_deg: 90}
+    - lift_level: 4
+      turntable:
+        - direction: Left
+          lift_position_mm: 2000
+          angle_deg: -90
+          telescope: 
+            - {depth: 1, length_mm: 800, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1600, fork_angle_deg: 90}
+        - direction: Middle
+          lift_position_mm: 1950
+          angle_deg: 0
+          telescope: 
+            - {depth: 1, length_mm: 700, fork_angle_deg: 90}
+        - direction: Right
+          lift_position_mm: 2200
+          angle_deg: 90
+          telescope: 
+            - {depth: 1, length_mm: 500, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1000, fork_angle_deg: 90}
+    - lift_level: 5
+      turntable:
+        - direction: Left
+          lift_position_mm: 2500
+          angle_deg: -90
+          telescope: 
+            - {depth: 1, length_mm: 800, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1600, fork_angle_deg: 90}
+        - direction: Middle
+          lift_position_mm: 2450
+          angle_deg: 0
+          telescope: 
+            - {depth: 1, length_mm: 700, fork_angle_deg: 90}
+        - direction: Right
+          lift_position_mm: 2800
+          angle_deg: 90
+          telescope: 
+            - {depth: 1, length_mm: 500, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1000, fork_angle_deg: 90}
+    - lift_level: 6
+      turntable:
+        - direction: Left
+          lift_position_mm: 3000
+          angle_deg: -90
+          telescope: 
+            - {depth: 1, length_mm: 800, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1600, fork_angle_deg: 90}
+        - direction: Middle
+          lift_position_mm: 2950
+          angle_deg: 0
+          telescope: 
+            - {depth: 1, length_mm: 700, fork_angle_deg: 90}
+        - direction: Right
+          lift_position_mm: 3200
+          angle_deg: 90
+          telescope: 
+            - {depth: 1, length_mm: 500, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1000, fork_angle_deg: 90}
+    - lift_level: 7
+      turntable:
+        - direction: Left
+          lift_position_mm: 3500
+          angle_deg: -90
+          telescope: 
+            - {depth: 1, length_mm: 800, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1600, fork_angle_deg: 90}
+        - direction: Middle
+          lift_position_mm: 3450
+          angle_deg: 0
+          telescope: 
+            - {depth: 1, length_mm: 700, fork_angle_deg: 90}
+        - direction: Right
+          lift_position_mm: 3800
+          angle_deg: 90
+          telescope: 
+            - {depth: 1, length_mm: 500, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1000, fork_angle_deg: 90}
+    - lift_level: 8
+      turntable:
+        - direction: Left
+          lift_position_mm: 4000
+          angle_deg: -90
+          telescope: 
+            - {depth: 1, length_mm: 800, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1600, fork_angle_deg: 90}
+        - direction: Middle
+          lift_position_mm: 3950
+          angle_deg: 0
+          telescope: 
+            - {depth: 1, length_mm: 700, fork_angle_deg: 90}
+        - direction: Right
+          lift_position_mm: 4200
+          angle_deg: 90
+          telescope: 
+            - {depth: 1, length_mm: 500, fork_angle_deg: 90}
+            - {depth: 2, length_mm: 1000, fork_angle_deg: 90}
