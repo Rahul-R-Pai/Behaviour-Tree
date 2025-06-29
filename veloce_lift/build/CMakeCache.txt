@@ -221,6 +221,9 @@ veloce_lift_IS_TOP_LEVEL:STATIC=ON
 //Value Computed by CMake
 veloce_lift_SOURCE_DIR:STATIC=/workspace/bt_demo/veloce_lift
 
+//The directory containing a CMake configuration file for yaml-cpp.
+yaml-cpp_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/yaml-cpp
+
 
 ########################
 # INTERNAL cache entries

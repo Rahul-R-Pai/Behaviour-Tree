@@ -6,8 +6,86 @@
 #include <map>
 #include <string>
 #include <functional>
+#include <yaml-cpp/yaml.h>
+#include <stdexcept>
 
 using namespace BT;
+
+// Structure to hold YAML operation settings
+struct TelescopeConfig {
+    int depth;
+    int length_mm;
+    double fork_angle_deg;
+};
+
+struct TurntableConfig {
+    std::string direction;
+    double lift_position_mm;
+    double angle_deg;
+    std::vector<TelescopeConfig> telescope;
+};
+
+struct LiftLevelConfig {
+    int lift_level;
+    std::vector<TurntableConfig> turntable;
+};
+
+struct LiftControlConfig {
+    std::vector<LiftLevelConfig> operation_settings;
+
+    bool getParams(int lift_level, const std::string& turntable_dir, int depth,
+                   double& lift_position_m, std::string& turntable_pos, int& telescope_pos_mm, double& fork_pos_deg) const {
+        for (const auto& level : operation_settings) {
+            if (level.lift_level == lift_level) {
+                for (const auto& tt : level.turntable) {
+                    if (tt.direction == turntable_dir) {
+                        for (const auto& tel : tt.telescope) {
+                            if (tel.depth == depth) {
+                                lift_position_m = tt.lift_position_mm / 1000.0;
+                                turntable_pos = std::to_string(tt.angle_deg);
+                                telescope_pos_mm = tel.length_mm;
+                                fork_pos_deg = tel.fork_angle_deg;
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+};
+
+LiftControlConfig loadYaml(const std::string& filename) {
+    LiftControlConfig config;
+    try {
+        YAML::Node yaml = YAML::LoadFile(filename);
+        const auto& op_settings = yaml["lift_control"]["operation_settings"];
+        for (const auto& level : op_settings) {
+            LiftLevelConfig level_config;
+            level_config.lift_level = level["lift_level"].as<int>();
+            for (const auto& tt : level["turntable"]) {
+                TurntableConfig tt_config;
+                tt_config.direction = tt["direction"].as<std::string>();
+                tt_config.lift_position_mm = tt["lift_position_mm"].as<double>();
+                tt_config.angle_deg = tt["angle_deg"].as<double>();
+                for (const auto& tel : tt["telescope"]) {
+                    TelescopeConfig tel_config;
+                    tel_config.depth = tel["depth"].as<int>();
+                    tel_config.length_mm = tel["length_mm"].as<int>();
+                    tel_config.fork_angle_deg = tel["fork_angle_deg"].as<double>();
+                    tt_config.telescope.push_back(tel_config);
+                }
+                level_config.turntable.push_back(tt_config);
+            }
+            config.operation_settings.push_back(level_config);
+        }
+    } catch (const YAML::Exception& e) {
+        std::cerr << "Error loading YAML: " << e.what() << std::endl;
+        throw;
+    }
+    return config;
+}
 
 struct BBValue {
     std::string key;
@@ -19,7 +97,7 @@ std::map<std::string, std::string> current_positions = {
     {"current_lift_pos", "0.0"},
     {"current_telescope_pos", "0"},
     {"current_fork_pos", "0.0"},
-    {"current_turntable_pos", "home"}
+    {"current_turntable_pos", "0"}
 };
 
 std::map<std::string, NodeStatus> conditions;
@@ -79,7 +157,8 @@ NodeStatus CheckTurntablePosition(TreeNode& node) {
     }
     auto current_pos = current_positions["current_turntable_pos"];
     bool is_equal = (current_pos == target_pos);
-    std::cout << "[Condition] TurntablePosition checking: current=" << current_pos<< ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+    std::cout << "[Condition] TurntablePosition checking: current=" << current_pos
+              << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
     conditions["TurntablePosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
     return conditions["TurntablePosition"];
 }
@@ -98,7 +177,8 @@ NodeStatus CheckLiftPosition(TreeNode& node) {
         return NodeStatus::FAILURE;
     }
     bool is_equal = std::abs(current_pos - target_pos) < 0.0001;
-    std::cout << "[Condition] LiftPosition checking: current=" << current_pos<< ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+    std::cout << "[Condition] LiftPosition checking: current=" << current_pos
+              << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
     conditions["LiftPosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
     return conditions["LiftPosition"];
 }
@@ -118,7 +198,8 @@ NodeStatus CheckForkPosition(TreeNode& node) {
     }
     bool is_equal = std::abs(current_pos - target_pos) < 0.0001;
     node.setOutput("fork_position_deg", current_pos);
-    std::cout << "[Condition] ForkPosition checking: current=" << current_pos<< ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+    std::cout << "[Condition] ForkPosition checking: current=" << current_pos
+              << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
     conditions["ForkPosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
     return conditions["ForkPosition"];
 }
@@ -137,19 +218,18 @@ NodeStatus CheckTelescopePosition(TreeNode& node) {
         return NodeStatus::FAILURE;
     }
     bool is_equal = (current_pos == target_pos);
-    std::cout << "[Condition] TelescopePosition checking: current=" << current_pos<< ", target=" << target_pos << ", equal=" << is_equal << std::endl;
+    std::cout << "[Condition] TelescopePosition checking: current=" << current_pos
+              << ", target=" << target_pos << ", equal=" << is_equal << std::endl;
     conditions["TelescopePosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
     return conditions["TelescopePosition"];
 }
 
-class MoveLiftNode : public StatefulActionNode
-{
+class MoveLiftNode : public StatefulActionNode {
 public:
-    MoveLiftNode(const std::string& name, const NodeConfig& config) : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now())
-    {}
+    MoveLiftNode(const std::string& name, const NodeConfig& config)
+        : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now()) {}
 
-    static PortsList providedPorts()
-    {
+    static PortsList providedPorts() {
         return {
             InputPort<double>("lift_target_position_m"),
             OutputPort<double>("current_lift_position_m"),
@@ -158,12 +238,10 @@ public:
         };
     }
 
-    NodeStatus onStart() override
-    {
+    NodeStatus onStart() override {
         int error_code = 0;
         std::string error_msg = "Success";
-        if (!getInput("lift_target_position_m", lift_target_pos_))
-        {
+        if (!getInput("lift_target_position_m", lift_target_pos_)) {
             error_code = 1;
             error_msg = "Missing lift_target_position_m";
             setOutput("error_code", error_code);
@@ -176,12 +254,10 @@ public:
         return NodeStatus::RUNNING;
     }
 
-    NodeStatus onRunning() override
-    {
+    NodeStatus onRunning() override {
         auto now = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
-        if (elapsed >= std::chrono::seconds(3))
-        {
+        if (elapsed >= std::chrono::seconds(3)) {
             setOutput("current_lift_position_m", lift_target_pos_);
             setOutput("error_code", 0);
             setOutput("error_msg", "Success");
@@ -192,8 +268,7 @@ public:
         return NodeStatus::RUNNING;
     }
 
-    void onHalted() override
-    {
+    void onHalted() override {
         std::cout << "[Action] MoveLift halted" << std::endl;
     }
 
@@ -202,14 +277,12 @@ private:
     std::chrono::steady_clock::time_point start_time_;
 };
 
-class MoveTelescopeNode : public StatefulActionNode
-{
+class MoveTelescopeNode : public StatefulActionNode {
 public:
-    MoveTelescopeNode(const std::string& name, const NodeConfig& config) : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now())
-    {}
+    MoveTelescopeNode(const std::string& name, const NodeConfig& config)
+        : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now()) {}
 
-    static PortsList providedPorts()
-    {
+    static PortsList providedPorts() {
         return {
             InputPort<int>("telescope_target_position_mm"),
             InputPort<std::string>("control_mode"),
@@ -219,12 +292,10 @@ public:
         };
     }
 
-    NodeStatus onStart() override
-    {
+    NodeStatus onStart() override {
         int error_code = 0;
         std::string error_msg = "Success";
-        if (!getInput("telescope_target_position_mm", telescope_target_pos_))
-        {
+        if (!getInput("telescope_target_position_mm", telescope_target_pos_)) {
             error_code = 1;
             error_msg = "Missing telescope_target_position_mm";
             setOutput("error_code", error_code);
@@ -238,12 +309,10 @@ public:
         return NodeStatus::RUNNING;
     }
 
-    NodeStatus onRunning() override
-    {
+    NodeStatus onRunning() override {
         auto now = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
-        if (elapsed >= std::chrono::seconds(3))
-        {
+        if (elapsed >= std::chrono::seconds(3)) {
             setOutput("current_telescope_position_mm", telescope_target_pos_);
             setOutput("error_code", 0);
             setOutput("error_msg", "Success");
@@ -254,8 +323,7 @@ public:
         return NodeStatus::RUNNING;
     }
 
-    void onHalted() override
-    {
+    void onHalted() override {
         std::cout << "[Action] MoveTelescope halted" << std::endl;
     }
 
@@ -265,14 +333,12 @@ private:
     std::chrono::steady_clock::time_point start_time_;
 };
 
-class MoveTurntableNode : public StatefulActionNode
-{
+class MoveTurntableNode : public StatefulActionNode {
 public:
-    MoveTurntableNode(const std::string& name, const NodeConfig& config) : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now())
-    {}
+    MoveTurntableNode(const std::string& name, const NodeConfig& config)
+        : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now()) {}
 
-    static PortsList providedPorts()
-    {
+    static PortsList providedPorts() {
         return {
             InputPort<std::string>("turntable_target_position"),
             OutputPort<std::string>("current_turntable_position"),
@@ -281,12 +347,10 @@ public:
         };
     }
 
-    NodeStatus onStart() override
-    {
+    NodeStatus onStart() override {
         int error_code = 0;
         std::string error_msg = "Success";
-        if (!getInput("turntable_target_position", turntable_target_pos_))
-        {
+        if (!getInput("turntable_target_position", turntable_target_pos_)) {
             error_code = 1;
             error_msg = "Missing turntable_target_position";
             setOutput("error_code", error_code);
@@ -299,12 +363,10 @@ public:
         return NodeStatus::RUNNING;
     }
 
-    NodeStatus onRunning() override
-    {
+    NodeStatus onRunning() override {
         auto now = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
-        if (elapsed >= std::chrono::seconds(3))
-        {
+        if (elapsed >= std::chrono::seconds(3)) {
             setOutput("current_turntable_position", turntable_target_pos_);
             setOutput("error_code", 0);
             setOutput("error_msg", "Success");
@@ -315,8 +377,7 @@ public:
         return NodeStatus::RUNNING;
     }
 
-    void onHalted() override
-    {
+    void onHalted() override {
         std::cout << "[Action] MoveTurntable halted" << std::endl;
     }
 
@@ -325,14 +386,12 @@ private:
     std::chrono::steady_clock::time_point start_time_;
 };
 
-class MoveForksNode : public StatefulActionNode
-{
+class MoveForksNode : public StatefulActionNode {
 public:
-    MoveForksNode(const std::string& name, const NodeConfig& config) : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now())
-    {}
+    MoveForksNode(const std::string& name, const NodeConfig& config)
+        : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now()) {}
 
-    static PortsList providedPorts()
-    {
+    static PortsList providedPorts() {
         return {
             InputPort<double>("fork_position_deg"),
             OutputPort<double>("current_fork_position_deg"),
@@ -341,12 +400,10 @@ public:
         };
     }
 
-    NodeStatus onStart() override
-    {
+    NodeStatus onStart() override {
         int error_code = 0;
         std::string error_msg = "Success";
-        if (!getInput("fork_position_deg", fork_target_pos_))
-        {
+        if (!getInput("fork_position_deg", fork_target_pos_)) {
             error_code = 1;
             error_msg = "Missing fork_position_deg";
             setOutput("error_code", error_code);
@@ -359,12 +416,10 @@ public:
         return NodeStatus::RUNNING;
     }
 
-    NodeStatus onRunning() override
-    {
+    NodeStatus onRunning() override {
         auto now = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
-        if (elapsed >= std::chrono::seconds(3))
-        {
+        if (elapsed >= std::chrono::seconds(3)) {
             setOutput("current_fork_position_deg", fork_target_pos_);
             setOutput("error_code", 0);
             setOutput("error_msg", "Success");
@@ -375,8 +430,7 @@ public:
         return NodeStatus::RUNNING;
     }
 
-    void onHalted() override
-    {
+    void onHalted() override {
         std::cout << "[Action] MoveForks halted" << std::endl;
     }
 
@@ -385,8 +439,15 @@ private:
     std::chrono::steady_clock::time_point start_time_;
 };
 
-int main()
-{
+int main() {
+    LiftControlConfig config;
+    try {
+        config = loadYaml("./../lift_positions.yaml");
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to load YAML: " << e.what() << std::endl;
+        return 1;
+    }
+
     BehaviorTreeFactory factory;
 
     std::vector<std::string> sensors = {
@@ -401,8 +462,7 @@ int main()
         "TelescopePosition"
     };
 
-    for (const auto& s : sensors)
-    {
+    for (const auto& s : sensors) {
         conditions[s] = NodeStatus::FAILURE;
     }
 
@@ -410,11 +470,16 @@ int main()
     factory.registerSimpleCondition("BinPresenceSensors", std::bind(CheckBinPresenceSensors));
     factory.registerSimpleCondition("TelescopeHomeSensors", std::bind(CheckTelescopeHomeSensors));
     factory.registerSimpleCondition("RackSensors", std::bind(CheckRackSensors));
-    factory.registerSimpleCondition("ToteOutOfReach", std::bind(CheckToteOutOfReach, std::placeholders::_1),{OutputPort<bool>("tote_out_of_reach")});
-    factory.registerSimpleCondition("TurntablePosition", std::bind(CheckTurntablePosition, std::placeholders::_1),{InputPort<std::string>("turntable_position")});
-    factory.registerSimpleCondition("LiftPosition", std::bind(CheckLiftPosition, std::placeholders::_1),{InputPort<double>("lift_position_m")});
-    factory.registerSimpleCondition("ForkPosition", std::bind(CheckForkPosition, std::placeholders::_1),{InputPort<double>("fork_position_deg"), OutputPort<double>("fork_position_deg")});
-    factory.registerSimpleCondition("TelescopePosition", std::bind(CheckTelescopePosition, std::placeholders::_1),{InputPort<int>("telescope_position_mm")});
+    factory.registerSimpleCondition("ToteOutOfReach", std::bind(CheckToteOutOfReach, std::placeholders::_1),
+                                   {OutputPort<bool>("tote_out_of_reach")});
+    factory.registerSimpleCondition("TurntablePosition", std::bind(CheckTurntablePosition, std::placeholders::_1),
+                                   {InputPort<std::string>("turntable_position")});
+    factory.registerSimpleCondition("LiftPosition", std::bind(CheckLiftPosition, std::placeholders::_1),
+                                   {InputPort<double>("lift_position_m")});
+    factory.registerSimpleCondition("ForkPosition", std::bind(CheckForkPosition, std::placeholders::_1),
+                                   {InputPort<double>("fork_position_deg"), OutputPort<double>("fork_position_deg")});
+    factory.registerSimpleCondition("TelescopePosition", std::bind(CheckTelescopePosition, std::placeholders::_1),
+                                   {InputPort<int>("telescope_position_mm")});
 
     factory.registerNodeType<MoveLiftNode>("MoveLift");
     factory.registerNodeType<MoveTelescopeNode>("MoveTelescope");
@@ -423,26 +488,38 @@ int main()
 
     auto blackboard = Blackboard::create();
 
-    blackboard->set("target_lift_pos", 0.5);
-    blackboard->set("target_telescope_pos", 0);
-    blackboard->set("target_fork_pos", 0.0);
-    blackboard->set("turntable_dir", std::string("home"));
+    blackboard->set("lift_level", 1);
+    blackboard->set("depth", 1);
+    blackboard->set("turntable_dir", std::string("Middle"));
     blackboard->set("telescope_mode", std::string("position"));
-    blackboard->set("deep", std::string("single"));
     blackboard->set("tote_out_of_reach", false);
     blackboard->set("picked", false);
+    double lift_pos_m;
+    std::string turntable_pos;
+    int telescope_pos_mm;
+    double fork_pos_deg;
+    if (config.getParams(1, "Middle", 1, lift_pos_m, turntable_pos, telescope_pos_mm, fork_pos_deg)) {
+        blackboard->set("target_lift_pos", lift_pos_m);
+        blackboard->set("target_turntable_pos", turntable_pos);
+        blackboard->set("target_telescope_pos", telescope_pos_mm);
+        blackboard->set("target_fork_pos", fork_pos_deg);
+    } else {
+        std::cerr << "Failed to initialize blackboard from YAML" << std::endl;
+        return 1;
+    }
 
     Tree tree = factory.createTreeFromFile("./../veloce_lift_new.xml", blackboard);
     Groot2Publisher publisher(tree);
 
     std::vector<BBValue> editable = {
-        {"deep", "string", "single"},
-        {"turntable_dir", "string", "home"},
+        {"lift_level", "int", "1"},
+        {"depth", "int", "1"},
+        {"turntable_dir", "string", "Middle"},
         {"tote_out_of_reach", "bool", "false"},
         {"picked", "bool", "false"},
-        {"target_lift_pos", "double", "0.5"},
-        {"target_telescope_pos", "int", "0"},
-        {"target_fork_pos", "double", "0.0"},
+        {"target_lift_pos", "double", std::to_string(lift_pos_m)},
+        {"target_telescope_pos", "int", std::to_string(telescope_pos_mm)},
+        {"target_fork_pos", "double", std::to_string(fork_pos_deg)},
         {"telescope_mode", "string", "position"}
     };
 
@@ -458,8 +535,7 @@ int main()
     int selected = 0;
     bool show_tick_message = false;
 
-    while (true)
-    {
+    while (true) {
         if (!show_tick_message) {
             clear();
         }
@@ -467,8 +543,7 @@ int main()
         mvprintw(0, 2, "BehaviorTree Blackboard Editor - ↑↓ to navigate, Enter to toggle/type, F5 to tick, q to quit");
 
         int row = 2;
-        for (size_t i = 0; i < sensors.size(); ++i)
-        {
+        for (size_t i = 0; i < sensors.size(); ++i) {
             bool active = (selected == (int)i);
             attron(active ? A_REVERSE : A_NORMAL);
             auto status = conditions[sensors[i]] == NodeStatus::SUCCESS ? "[o]" : "[ ]";
@@ -476,8 +551,7 @@ int main()
             attroff(active ? A_REVERSE : A_NORMAL);
         }
 
-        for (size_t i = 0; i < editable.size(); ++i)
-        {
+        for (size_t i = 0; i < editable.size(); ++i) {
             int j = i + sensors.size();
             bool active = (selected == j);
             attron(active ? A_REVERSE : A_NORMAL);
@@ -500,15 +574,11 @@ int main()
         if (ch == 'q') break;
         else if (ch == KEY_DOWN && selected < (int)(sensors.size() + editable.size()) - 1) selected++;
         else if (ch == KEY_UP && selected > 0) selected--;
-        else if (ch == 10 || ch == KEY_ENTER)
-        {
-            if (selected < (int)sensors.size())
-            {
+        else if (ch == 10 || ch == KEY_ENTER) {
+            if (selected < (int)sensors.size()) {
                 auto& s = sensors[selected];
                 conditions[s] = (conditions[s] == NodeStatus::SUCCESS) ? NodeStatus::FAILURE : NodeStatus::SUCCESS;
-            }
-            else
-            {
+            } else {
                 echo();
                 curs_set(1);
                 int i = selected - sensors.size();
@@ -535,24 +605,34 @@ int main()
                     }
                 } else if (editable[i].type == "int") {
                     try {
-                        std::stoi(input_str);
-                        editable[i].value = input_str;
+                        int val = std::stoi(input_str);
+                        if (editable[i].key == "lift_level" && (val < 1 || val > 8)) {
+                            mvprintw(row + 2, 1, "Invalid lift_level: %s (use 1-8)", input_str.c_str());
+                            refresh();
+                            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                        } else if (editable[i].key == "depth" && (val < 1 || val > 2)) {
+                            mvprintw(row + 2, 1, "Invalid depth: %s (use 1-2)", input_str.c_str());
+                            refresh();
+                            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                        } else {
+                            editable[i].value = input_str;
+                        }
                     } catch (const std::exception& e) {
                         mvprintw(row + 2, 1, "Invalid int value: %s", input_str.c_str());
                         refresh();
                         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     }
-                } else if (editable[i].key == "deep") {
-                    if (input_str != "single" && input_str != "double") {
-                        mvprintw(row + 2, 1, "Invalid deep value: %s (use 'single', 'double')", input_str.c_str());
+                } else if (editable[i].key == "turntable_dir") {
+                    if (input_str != "Left" && input_str != "Middle" && input_str != "Right") {
+                        mvprintw(row + 2, 1, "Invalid turntable_dir: %s (use 'Left', 'Middle', 'Right')", input_str.c_str());
                         refresh();
                         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     } else {
                         editable[i].value = input_str;
                     }
-                } else if (editable[i].key == "turntable_dir") {
-                    if (input_str != "home" && input_str != "left" && input_str != "right") {
-                        mvprintw(row + 2, 1, "Invalid turntable_dir: %s (use 'home', 'left', 'right')", input_str.c_str());
+                } else if (editable[i].type == "bool") {
+                    if (input_str != "true" && input_str != "false" && input_str != "1" && input_str != "0") {
+                        mvprintw(row + 2, 1, "Invalid bool value: %s (use 'true', 'false', '1', '0')", input_str.c_str());
                         refresh();
                         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     } else {
@@ -564,22 +644,38 @@ int main()
                 noecho();
                 curs_set(0);
             }
-        }
-        else if (ch == KEY_F(5))
-        {
-            // Temporarily exit ncurses to allow console output
+        } else if (ch == KEY_F(5)) {
             endwin();
-            std::string deep_value;
-            if (blackboard->get("deep", deep_value)) {
-                std::cout << "[Debug] Blackboard deep = " << deep_value << " (type: string)" << std::endl;
-            }
+            int lift_level;
+            int depth;
             std::string turntable_dir;
-            if (blackboard->get("turntable_dir", turntable_dir)) {
-                std::cout << "[Debug] Blackboard turntable_dir = " << turntable_dir << " (type: string)" << std::endl;
+            if (blackboard->get("lift_level", lift_level) && blackboard->get("depth", depth) &&
+                blackboard->get("turntable_dir", turntable_dir)) {
+                double lift_pos_m;
+                std::string turntable_pos;
+                int telescope_pos_mm;
+                double fork_pos_deg;
+                if (config.getParams(lift_level, turntable_dir, depth, lift_pos_m, turntable_pos, telescope_pos_mm, fork_pos_deg)) {
+                    blackboard->set("target_lift_pos", lift_pos_m);
+                    blackboard->set("target_turntable_pos", turntable_pos);
+                    blackboard->set("target_telescope_pos", telescope_pos_mm);
+                    blackboard->set("target_fork_pos", fork_pos_deg);
+                    for (auto& val : editable) {
+                        if (val.key == "target_lift_pos") val.value = std::to_string(lift_pos_m);
+                        else if (val.key == "target_telescope_pos") val.value = std::to_string(telescope_pos_mm);
+                        else if (val.key == "target_fork_pos") val.value = std::to_string(fork_pos_deg);
+                    }
+                    std::cout << "[Debug] Set from YAML: lift_level=" << lift_level << ", turntable_dir=" << turntable_dir
+                              << ", depth=" << depth << ", lift_pos_m=" << lift_pos_m
+                              << ", turntable_pos=" << turntable_pos << ", telescope_pos_mm=" << telescope_pos_mm
+                              << ", fork_pos_deg=" << fork_pos_deg << std::endl;
+                } else {
+                    std::cout << "[Debug] Invalid YAML lookup: lift_level=" << lift_level
+                              << ", turntable_dir=" << turntable_dir << ", depth=" << depth << std::endl;
+                }
             }
 
-            for (const auto& val : editable)
-            {
+            for (const auto& val : editable) {
                 try {
                     if (val.type == "string")
                         blackboard->set(val.key, val.value);
@@ -597,10 +693,8 @@ int main()
             NodeStatus status = tree.tickWhileRunning();
             std::cout << "[Debug] Tree status: " << status << std::endl;
 
-            // Pause to ensure console output is visible
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-            // Reinitialize ncurses
             initscr();
             // start_color();
             // use_default_colors();

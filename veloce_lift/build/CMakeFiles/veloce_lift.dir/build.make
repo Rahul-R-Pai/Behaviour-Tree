@@ -93,6 +93,7 @@ veloce_lift_EXTERNAL_OBJECTS =
 veloce_lift: CMakeFiles/veloce_lift.dir/bt_ui.cpp.o
 veloce_lift: CMakeFiles/veloce_lift.dir/build.make
 veloce_lift: /workspace/install/behaviortree_cpp/lib/libbehaviortree_cpp.so
+veloce_lift: /usr/lib/x86_64-linux-gnu/libyaml-cpp.so.0.7.0
 veloce_lift: /usr/lib/x86_64-linux-gnu/libzmq.so
 veloce_lift: /usr/lib/x86_64-linux-gnu/libsqlite3.so
 veloce_lift: CMakeFiles/veloce_lift.dir/link.txt

@@ -394,14 +394,84 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
   /usr/include/curses.h \
   /usr/include/ncurses_dll.h \
   /usr/include/unctrl.h \
-  /usr/include/curses.h
+  /usr/include/curses.h \
+  /usr/include/yaml-cpp/yaml.h \
+  /usr/include/yaml-cpp/parser.h \
+  /usr/include/yaml-cpp/dll.h \
+  /usr/include/yaml-cpp/emitter.h \
+  /usr/include/yaml-cpp/binary.h \
+  /usr/include/yaml-cpp/emitterdef.h \
+  /usr/include/yaml-cpp/emittermanip.h \
+  /usr/include/yaml-cpp/null.h \
+  /usr/include/yaml-cpp/ostream_wrapper.h \
+  /usr/include/yaml-cpp/emitterstyle.h \
+  /usr/include/yaml-cpp/stlemitter.h \
+  /usr/include/c++/11/list \
+  /usr/include/c++/11/bits/stl_list.h \
+  /usr/include/c++/11/bits/list.tcc \
+  /usr/include/yaml-cpp/exceptions.h \
+  /usr/include/yaml-cpp/mark.h \
+  /usr/include/yaml-cpp/noexcept.h \
+  /usr/include/yaml-cpp/traits.h \
+  /usr/include/yaml-cpp/node/node.h \
+  /usr/include/yaml-cpp/node/detail/iterator_fwd.h \
+  /usr/include/yaml-cpp/node/ptr.h \
+  /usr/include/yaml-cpp/node/type.h \
+  /usr/include/yaml-cpp/node/impl.h \
+  /usr/include/yaml-cpp/node/detail/memory.h \
+  /usr/include/yaml-cpp/node/detail/node.h \
+  /usr/include/yaml-cpp/node/detail/node_ref.h \
+  /usr/include/yaml-cpp/node/detail/node_data.h \
+  /usr/include/yaml-cpp/node/detail/node_iterator.h \
+  /usr/include/yaml-cpp/node/iterator.h \
+  /usr/include/yaml-cpp/node/detail/iterator.h \
+  /usr/include/yaml-cpp/node/convert.h \
+  /usr/include/yaml-cpp/node/detail/impl.h \
+  /usr/include/yaml-cpp/node/parse.h \
+  /usr/include/yaml-cpp/node/emit.h
 
+
+/usr/include/yaml-cpp/node/emit.h:
+
+/usr/include/yaml-cpp/node/parse.h:
+
+/usr/include/yaml-cpp/node/detail/impl.h:
+
+/usr/include/yaml-cpp/node/convert.h:
+
+/usr/include/yaml-cpp/node/detail/node_data.h:
+
+/usr/include/yaml-cpp/node/detail/memory.h:
+
+/usr/include/yaml-cpp/node/impl.h:
+
+/usr/include/yaml-cpp/node/detail/node.h:
+
+/usr/include/yaml-cpp/node/detail/iterator_fwd.h:
+
+/usr/include/yaml-cpp/node/node.h:
+
+/usr/include/yaml-cpp/traits.h:
+
+/usr/include/yaml-cpp/mark.h:
+
+/usr/include/c++/11/list:
+
+/usr/include/yaml-cpp/emitterstyle.h:
+
+/usr/include/yaml-cpp/emittermanip.h:
+
+/usr/include/yaml-cpp/emitterdef.h:
+
+/usr/include/yaml-cpp/yaml.h:
 
 /usr/include/c++/11/bits/random.h:
 
 /usr/include/c++/11/random:
 
 /workspace/install/behaviortree_cpp/include/behaviortree_cpp/loggers/groot2_protocol.h:
+
+/usr/include/yaml-cpp/exceptions.h:
 
 /workspace/install/behaviortree_cpp/include/behaviortree_cpp/loggers/groot2_publisher.h:
 
@@ -423,6 +493,8 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 
 /workspace/install/behaviortree_cpp/include/behaviortree_cpp/decorators/updated_decorator.h:
 
+/usr/include/yaml-cpp/null.h:
+
 /usr/include/c++/11/bits/deque.tcc:
 
 /usr/include/c++/11/deque:
@@ -433,11 +505,15 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 
 /workspace/install/behaviortree_cpp/include/behaviortree_cpp/decorators/repeat_node.h:
 
+/usr/include/yaml-cpp/node/iterator.h:
+
 /workspace/install/behaviortree_cpp/include/behaviortree_cpp/decorators/retry_node.h:
 
 /workspace/install/behaviortree_cpp/include/behaviortree_cpp/decorators/inverter_node.h:
 
 /workspace/install/behaviortree_cpp/include/behaviortree_cpp/leaf_node.h:
+
+/usr/include/yaml-cpp/binary.h:
 
 /workspace/install/behaviortree_cpp/include/behaviortree_cpp/action_node.h:
 
@@ -487,6 +563,8 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 
 /usr/include/c++/11/mutex:
 
+/usr/include/c++/11/bits/list.tcc:
+
 /workspace/install/behaviortree_cpp/include/behaviortree_cpp/blackboard.h:
 
 /workspace/install/behaviortree_cpp/include/behaviortree_cpp/exceptions.h:
@@ -516,6 +594,8 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 /usr/include/c++/11/tr1/special_function_util.h:
 
 /usr/include/c++/11/bits/specfun.h:
+
+/usr/include/c++/11/bits/stl_list.h:
 
 /usr/include/x86_64-linux-gnu/bits/iscanonical.h:
 
@@ -643,6 +723,8 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 
 /usr/include/c++/11/bits/predefined_ops.h:
 
+/usr/include/yaml-cpp/node/ptr.h:
+
 /usr/include/x86_64-linux-gnu/bits/struct_mutex.h:
 
 /usr/include/c++/11/bits/stl_iterator.h:
@@ -650,6 +732,8 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 /usr/include/c++/11/bits/sstream.tcc:
 
 /usr/include/c++/11/new:
+
+/usr/include/yaml-cpp/stlemitter.h:
 
 /usr/include/c++/11/bits/std_thread.h:
 
@@ -693,6 +777,8 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 
 /usr/include/asm-generic/errno-base.h:
 
+/usr/include/yaml-cpp/node/detail/iterator.h:
+
 /usr/include/c++/11/bits/stringfwd.h:
 
 /usr/include/c++/11/ext/type_traits.h:
@@ -725,7 +811,11 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 
 /usr/include/c++/11/bits/concept_check.h:
 
+/usr/include/yaml-cpp/dll.h:
+
 /usr/include/c++/11/bits/exception_ptr.h:
+
+/usr/include/yaml-cpp/node/detail/node_ref.h:
 
 /workspace/install/behaviortree_cpp/include/behaviortree_cpp/decorators/script_precondition.h:
 
@@ -742,6 +832,8 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 /usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h:
+
+/usr/include/yaml-cpp/ostream_wrapper.h:
 
 /usr/include/c++/11/tr1/gamma.tcc:
 
@@ -807,6 +899,8 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/cpu_defines.h:
 
+/usr/include/yaml-cpp/node/detail/node_iterator.h:
+
 /usr/include/x86_64-linux-gnu/bits/timesize.h:
 
 /usr/include/x86_64-linux-gnu/bits/long-double.h:
@@ -820,6 +914,8 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 /usr/include/c++/11/iosfwd:
 
 /usr/include/c++/11/ext/numeric_traits.h:
+
+/usr/include/yaml-cpp/node/type.h:
 
 /usr/include/c++/11/bits/atomic_base.h:
 
@@ -860,6 +956,8 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 /usr/include/x86_64-linux-gnu/bits/types/error_t.h:
 
 /usr/include/wchar.h:
+
+/usr/include/yaml-cpp/parser.h:
 
 /usr/include/c++/11/bits/cxxabi_init_exception.h:
 
@@ -999,6 +1097,8 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 
 /usr/include/alloca.h:
 
+/usr/include/yaml-cpp/emitter.h:
+
 /usr/include/c++/11/cstdio:
 
 /usr/include/c++/11/bits/forward_list.tcc:
@@ -1048,6 +1148,8 @@ CMakeFiles/veloce_lift.dir/bt_ui.cpp.o: ../bt_ui.cpp \
 /usr/include/c++/11/codecvt:
 
 /usr/include/c++/11/bits/streambuf.tcc:
+
+/usr/include/yaml-cpp/noexcept.h:
 
 /workspace/install/behaviortree_cpp/include/behaviortree_cpp/loggers/abstract_logger.h:
 

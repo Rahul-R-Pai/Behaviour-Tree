@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence name="MoveToPosition">
+      <Condition ID="CheckLiftPosition" lift_position_m="{target_lift_pos}"/>
+      <Action ID="MoveLift" lift_target_position_m="{target_lift_pos}" current_lift_position_m="{current_lift_position_m}" error_code="{lift_error_code}" error_msg="{lift_error_msg}"/>
+      <Condition ID="CheckTurntablePosition" turntable_position="{turntable_dir}"/>
+      <Action ID="MoveTurntable" turntable_target_position="{turntable_dir}" current_turntable_position="{current_turntable_position}" error_code="{turntable_error_code}" error_msg="{turntable_error_msg}"/>
+      <Condition ID="CheckTelescopePosition" telescope_position_mm="{target_telescope_pos}"/>
+      <Action ID="MoveTelescope" telescope_target_position_mm="{target_telescope_pos}" control_mode="{telescope_mode}" current_telescope_position_mm="{current_telescope_position_mm}" error_code="{telescope_error_code}" error_msg="{telescope_error_msg}"/>
+      <Condition ID="CheckForkPosition" fork_position_deg="{target_fork_pos}"/>
+      <Action ID="MoveForks" fork_position_deg="{target_fork_pos}" current_fork_position_deg="{current_fork_position_deg}" error_code="{fork_error_code}" error_msg="{fork_error_msg}"/>
+    </Sequence>
+  </BehaviorTree>
+</root>
