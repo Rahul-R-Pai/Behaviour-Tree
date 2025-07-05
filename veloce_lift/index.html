@@ -1,150 +1,207 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Veloce Lift Control</title>
-    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/babel-standalone@7.22.9/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(to bottom, #e0e7ff, #f7f9fc);
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #1e3a8a;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        .section:hover {
+            transform: translateY(-2px);
+        }
+        h2 {
+            color: #1e40af;
+            font-size: 1.5em;
+            margin: 0 0 15px 0;
+            border-bottom: 2px solid #e0e7ff;
+            padding-bottom: 5px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .sensor-item, .value-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 5px;
+            border: 1px solid #e2e8f0;
+        }
+        .sensor-item label, .value-item label {
+            flex: 1;
+            font-size: 1em;
+            color: #2d3748;
+        }
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        input[type="text"] {
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            width: 100px;
+            font-size: 0.9em;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus {
+            border-color: #1e40af;
+            outline: none;
+        }
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 30px;
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #1e40af;
+        }
+        pre {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 0.9em;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .error {
+            color: #dc2626;
+            font-weight: bold;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
-    <div id="root" class="container mx-auto p-4"></div>
-    <script type="text/babel">
-        function App() {
-            const [sensors, setSensors] = React.useState({
-                BinClearSensors: false,
-                BinPresenceSensors: false,
-                TelescopeHomeSensors: false,
-                RackSensors: false,
-                CheckToteOutOfReach: false,
-                CheckTurntablePosition: false,
-                CheckLiftPosition: false,
-                CheckForkPosition: false,
-                CheckTelescopePosition: false
-            });
-            const [values, setValues] = React.useState({
-                lift_level: "1",
-                turntable_dir: "Middle",
-                deep: "single",
-                tote_out_of_reach: "false",
-                picked: "false",
-                telescope_mode: "position"
-            });
-            const [consoleOutput, setConsoleOutput] = React.useState("");
-            const [error, setError] = React.useState("");
+<body>
+    <div class="container">
+        <h1>Veloce Lift Control</h1>
+        <div class="section">
+            <h2>Sensors</h2>
+            <div id="sensors" class="grid"></div>
+        </div>
+        <div class="section">
+            <h2>Values</h2>
+            <div id="values" class="grid"></div>
+        </div>
+        <div class="section">
+            <button onclick="tickTree()">Tick Tree</button>
+            <pre id="output"></pre>
+        </div>
+    </div>
+    <script>
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/api/status');
+                if (!response.ok) throw new Error('Failed to fetch status');
+                const data = await response.json();
+                document.getElementById('sensors').innerHTML = Object.entries(data.sensors)
+                    .map(([key, value]) => `<div class="sensor-item"><label><input type="checkbox" ${value ? 'checked' : ''} onclick="toggleSensor('${key}')">${key}</label></div>`)
+                    .join('');
+                document.getElementById('values').innerHTML = Object.entries(data.values)
+                    .map(([key, value]) => `<div class="value-item"><label>${key}: <input type="text" value="${value}" onblur="updateValue('${key}', this.value)"></label></div>`)
+                    .join('');
+            } catch (error) {
+                console.error('Fetch status error:', error);
+                document.getElementById('output').textContent = 'Error fetching status: ' + error.message;
+                document.getElementById('output').classList.add('error');
+            }
+        }
 
-            React.useEffect(() => {
-                fetch('/api/status')
-                    .then(res => res.json())
-                    .then(data => {
-                        setSensors(data.sensors);
-                        setValues(data.values);
-                    })
-                    .catch(err => setError("Failed to load status: " + err.message));
-            }, []);
-
-            const toggleSensor = (sensor) => {
-                fetch('/api/toggle_sensor', {
+        async function toggleSensor(sensor) {
+            try {
+                const response = await fetch('/api/toggle_sensor', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sensor })
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (res.status !== 200) {
-                            setError(data.error || "Failed to toggle sensor");
-                        } else {
-                            setSensors(data.sensors);
-                        }
-                    })
-                    .catch(err => setError("Failed to toggle sensor: " + err.message));
-            };
+                });
+                if (!response.ok) throw new Error('Failed to toggle sensor');
+                await fetchStatus();
+            } catch (error) {
+                console.error('Toggle sensor error:', error);
+                document.getElementById('output').textContent = 'Error toggling sensor: ' + error.message;
+                document.getElementById('output').classList.add('error');
+            }
+        }
 
-            const updateValue = (key, value) => {
-                fetch('/api/update_value', {
+        async function updateValue(key, value) {
+            try {
+                const response = await fetch('/api/update_value', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key, value })
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (res.status !== 200) {
-                            setError(data.error || "Failed to update value");
-                        } else {
-                            setValues(data.values);
-                        }
-                    })
-                    .catch(err => setError("Failed to update value: " + err.message));
-            };
-
-            const tickTree = () => {
-                fetch('/api/tick', { method: 'POST' })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (res.status !== 200) {
-                            setError(data.error || "Failed to tick tree");
-                        } else {
-                            setConsoleOutput(data.output);
-                            setSensors(data.sensors);
-                            setValues(data.values);
-                        }
-                    })
-                    .catch(err => setError("Failed to tick tree: " + err.message));
-            };
-
-            return (
-                <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-                    <h1 className="text-2xl font-bold mb-4">Veloce Lift Control</h1>
-                    {error && <p className="text-red-500 mb-4">{error}</p>}
-                    <div className="mb-4">
-                        <h2 className="text-xl font-semibold">Sensors</h2>
-                        {Object.keys(sensors).map(sensor => (
-                            <div key={sensor} className="flex items-center mb-2">
-                                <input
-                                    type="checkbox"
-                                    checked={sensors[sensor]}
-                                    onChange={() => toggleSensor(sensor)}
-                                    className="mr-2"
-                                />
-                                <span>{sensor}</span>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="mb-4">
-                        <h2 className="text-xl font-semibold">Blackboard Values</h2>
-                        {Object.keys(values).map(key => (
-                            <div key={key} className="flex items-center mb-2">
-                                <label className="w-40">{key}:</label>
-                                <input
-                                    type="text"
-                                    value={values[key]}
-                                    onChange={(e) => {
-                                        const newValues = { ...values, [key]: e.target.value };
-                                        setValues(newValues);
-                                        updateValue(key, e.target.value);
-                                    }}
-                                    className="border rounded px-2 py-1 flex-1"
-                                />
-                            </div>
-                        ))}
-                    </div>
-                    <button
-                        onClick={tickTree}
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                    >
-                        Tick Tree
-                    </button>
-                    <div className="mt-4">
-                        <h2 className="text-xl font-semibold">Console Output</h2>
-                        <pre className="bg-gray-800 text-white p-4 rounded max-h-96 overflow-auto">
-                            {consoleOutput}
-                        </pre>
-                    </div>
-                </div>
-            );
+                });
+                if (!response.ok) throw new Error('Failed to update value');
+                await fetchStatus();
+            } catch (error) {
+                console.error('Update value error:', error);
+                document.getElementById('output').textContent = 'Error updating value: ' + error.message;
+                document.getElementById('output').classList.add('error');
+            }
         }
 
-        ReactDOM.render(<App />, document.getElementById('root'));
+        async function tickTree() {
+            try {
+                const response = await fetch('/api/tick', { method: 'POST' });
+                if (!response.ok) throw new Error('Failed to tick tree');
+                const data = await response.json();
+                document.getElementById('output').textContent = data.output;
+                document.getElementById('output').classList.remove('error');
+                await fetchStatus();
+            } catch (error) {
+                console.error('Tick tree error:', error);
+                document.getElementById('output').textContent = 'Error ticking tree: ' + error.message;
+                document.getElementById('output').classList.add('error');
+            }
+        }
+
+        fetchStatus();
     </script>
 </body>
 </html>
