@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Veloce Lift Control</title>
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/babel-standalone@7.22.9/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div id="root" class="container mx-auto p-4"></div>
+    <script type="text/babel">
+        function App() {
+            const [sensors, setSensors] = React.useState({
+                BinClearSensors: false,
+                BinPresenceSensors: false,
+                TelescopeHomeSensors: false,
+                RackSensors: false,
+                CheckToteOutOfReach: false,
+                CheckTurntablePosition: false,
+                CheckLiftPosition: false,
+                CheckForkPosition: false,
+                CheckTelescopePosition: false
+            });
+            const [values, setValues] = React.useState({
+                lift_level: "1",
+                turntable_dir: "Middle",
+                deep: "single",
+                tote_out_of_reach: "false",
+                picked: "false",
+                telescope_mode: "position"
+            });
+            const [consoleOutput, setConsoleOutput] = React.useState("");
+            const [error, setError] = React.useState("");
+
+            React.useEffect(() => {
+                fetch('/api/status')
+                    .then(res => res.json())
+                    .then(data => {
+                        setSensors(data.sensors);
+                        setValues(data.values);
+                    })
+                    .catch(err => setError("Failed to load status: " + err.message));
+            }, []);
+
+            const toggleSensor = (sensor) => {
+                fetch('/api/toggle_sensor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sensor })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (res.status !== 200) {
+                            setError(data.error || "Failed to toggle sensor");
+                        } else {
+                            setSensors(data.sensors);
+                        }
+                    })
+                    .catch(err => setError("Failed to toggle sensor: " + err.message));
+            };
+
+            const updateValue = (key, value) => {
+                fetch('/api/update_value', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key, value })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (res.status !== 200) {
+                            setError(data.error || "Failed to update value");
+                        } else {
+                            setValues(data.values);
+                        }
+                    })
+                    .catch(err => setError("Failed to update value: " + err.message));
+            };
+
+            const tickTree = () => {
+                fetch('/api/tick', { method: 'POST' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (res.status !== 200) {
+                            setError(data.error || "Failed to tick tree");
+                        } else {
+                            setConsoleOutput(data.output);
+                            setSensors(data.sensors);
+                            setValues(data.values);
+                        }
+                    })
+                    .catch(err => setError("Failed to tick tree: " + err.message));
+            };
+
+            return (
+                <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
+                    <h1 className="text-2xl font-bold mb-4">Veloce Lift Control</h1>
+                    {error && <p className="text-red-500 mb-4">{error}</p>}
+                    <div className="mb-4">
+                        <h2 className="text-xl font-semibold">Sensors</h2>
+                        {Object.keys(sensors).map(sensor => (
+                            <div key={sensor} className="flex items-center mb-2">
+                                <input
+                                    type="checkbox"
+                                    checked={sensors[sensor]}
+                                    onChange={() => toggleSensor(sensor)}
+                                    className="mr-2"
+                                />
+                                <span>{sensor}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mb-4">
+                        <h2 className="text-xl font-semibold">Blackboard Values</h2>
+                        {Object.keys(values).map(key => (
+                            <div key={key} className="flex items-center mb-2">
+                                <label className="w-40">{key}:</label>
+                                <input
+                                    type="text"
+                                    value={values[key]}
+                                    onChange={(e) => {
+                                        const newValues = { ...values, [key]: e.target.value };
+                                        setValues(newValues);
+                                        updateValue(key, e.target.value);
+                                    }}
+                                    className="border rounded px-2 py-1 flex-1"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    <button
+                        onClick={tickTree}
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                        Tick Tree
+                    </button>
+                    <div className="mt-4">
+                        <h2 className="text-xl font-semibold">Console Output</h2>
+                        <pre className="bg-gray-800 text-white p-4 rounded max-h-96 overflow-auto">
+                            {consoleOutput}
+                        </pre>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

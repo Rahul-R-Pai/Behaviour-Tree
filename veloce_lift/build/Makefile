@@ -129,29 +129,53 @@ veloce_lift/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/build
 .PHONY : veloce_lift/fast
 
-bt_ui.o: bt_ui.cpp.o
-.PHONY : bt_ui.o
+app.o: app.cpp.o
+.PHONY : app.o
 
 # target to build an object file
-bt_ui.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/bt_ui.cpp.o
-.PHONY : bt_ui.cpp.o
+app.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/app.cpp.o
+.PHONY : app.cpp.o
 
-bt_ui.i: bt_ui.cpp.i
-.PHONY : bt_ui.i
+app.i: app.cpp.i
+.PHONY : app.i
 
 # target to preprocess a source file
-bt_ui.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/bt_ui.cpp.i
-.PHONY : bt_ui.cpp.i
+app.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/app.cpp.i
+.PHONY : app.cpp.i
 
-bt_ui.s: bt_ui.cpp.s
-.PHONY : bt_ui.s
+app.s: app.cpp.s
+.PHONY : app.s
 
 # target to generate assembly for a file
-bt_ui.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/bt_ui.cpp.s
-.PHONY : bt_ui.cpp.s
+app.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/app.cpp.s
+.PHONY : app.cpp.s
+
+bt.o: bt.cpp.o
+.PHONY : bt.o
+
+# target to build an object file
+bt.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/bt.cpp.o
+.PHONY : bt.cpp.o
+
+bt.i: bt.cpp.i
+.PHONY : bt.i
+
+# target to preprocess a source file
+bt.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/bt.cpp.i
+.PHONY : bt.cpp.i
+
+bt.s: bt.cpp.s
+.PHONY : bt.s
+
+# target to generate assembly for a file
+bt.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/bt.cpp.s
+.PHONY : bt.cpp.s
 
 # Help Target
 help:
@@ -162,9 +186,12 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... veloce_lift"
-	@echo "... bt_ui.o"
-	@echo "... bt_ui.i"
-	@echo "... bt_ui.s"
+	@echo "... app.o"
+	@echo "... app.i"
+	@echo "... app.s"
+	@echo "... bt.o"
+	@echo "... bt.i"
+	@echo "... bt.s"
 .PHONY : help
 
 

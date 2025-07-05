@@ -81,12 +81,12 @@ clean: CMakeFiles/veloce_lift.dir/clean
 CMakeFiles/veloce_lift.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/veloce_lift.dir/build.make CMakeFiles/veloce_lift.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/workspace/bt_demo/veloce_lift/build/CMakeFiles --progress-num=1,2 "Built target veloce_lift"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/workspace/bt_demo/veloce_lift/build/CMakeFiles --progress-num=1,2,3 "Built target veloce_lift"
 .PHONY : CMakeFiles/veloce_lift.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/veloce_lift.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /workspace/bt_demo/veloce_lift/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /workspace/bt_demo/veloce_lift/build/CMakeFiles 3
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/veloce_lift.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /workspace/bt_demo/veloce_lift/build/CMakeFiles 0
 .PHONY : CMakeFiles/veloce_lift.dir/rule
