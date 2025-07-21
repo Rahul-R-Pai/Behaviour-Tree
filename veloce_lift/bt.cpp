@@ -43,12 +43,13 @@ public:
         blackboard_->set("tote_out_of_reach", false);
         blackboard_->set("picked", false);
         blackboard_->set("target_lift_pos", 0.0);
+        blackboard_->set("target_turntable_dir", 0.0);
         blackboard_->set("target_telescope_pos", 0);
         blackboard_->set("target_fork_pos", 0.0);
         blackboard_->set("current_lift_position_m", 0.0);
         blackboard_->set("current_telescope_position_mm", 0);
         blackboard_->set("current_fork_position_deg", 0.0);
-        blackboard_->set("current_turntable_position", std::string("Middle"));
+        blackboard_->set("current_turntable_position", 0.0);
         blackboard_->set("lift_error_code", 0);
         blackboard_->set("telescope_error_code", 0);
         blackboard_->set("turntable_error_code", 0);
@@ -144,17 +145,17 @@ public:
         }
 
         double lift_pos_m;
-        std::string turntable_pos;
+        double turntable_pos_deg;
         int telescope_pos_mm;
         double fork_pos_deg;
         if (load_yaml_params("./../lift_position.yaml", lift_level, turntable_dir, deep_value,
-                             lift_pos_m, turntable_pos, telescope_pos_mm, fork_pos_deg)) {
+                             lift_pos_m, turntable_pos_deg, telescope_pos_mm, fork_pos_deg)) {
             blackboard_->set("target_lift_pos", lift_pos_m);
-            blackboard_->set("turntable_dir", turntable_pos);
+            blackboard_->set("target_turntable_dir", turntable_pos_deg);
             blackboard_->set("target_telescope_pos", telescope_pos_mm);
             blackboard_->set("target_fork_pos", fork_pos_deg);
             std::cout << "[Debug] Loaded YAML: lift_pos_m=" << lift_pos_m
-                      << ", turntable_pos=" << turntable_pos
+                      << ", turntable_pos_deg=" << turntable_pos_deg
                       << ", telescope_pos_mm=" << telescope_pos_mm
                       << ", fork_pos_deg=" << fork_pos_deg << std::endl;
         } else {
@@ -246,7 +247,7 @@ private:
   }
 
     bool load_yaml_params(const std::string& filename, int lift_level, const std::string& turntable_dir, const std::string& depth,
-                          double& lift_pos_m, std::string& turntable_pos, int& telescope_pos_mm, double& fork_pos_deg) {
+                          double& lift_pos_m, double& turntable_pos_deg, int& telescope_pos_mm, double& fork_pos_deg) {
         try {
             YAML::Node config = YAML::LoadFile(filename);
             YAML::Node operation_settings = config["lift_control"]["operation_settings"];
@@ -257,8 +258,8 @@ private:
                     for (const auto& turntable : level["turntable"]) {
                         if (turntable["direction"].as<std::string>() == turntable_dir) {
                             lift_pos_m = turntable["lift_position_mm"].as<double>() / 1000.0;
-                            double angle_deg = turntable["angle_deg"].as<double>();
-                            turntable_pos = (angle_deg == 0) ? "Middle" : (angle_deg < 0 ? "Left" : "Right");
+                            std::string turntable_dir_str = turntable["direction"].as<std::string>();
+                            turntable_pos_deg = (turntable_dir_str == "Middle") ? 0 : (turntable_dir_str == "Left" ? -90 : 90);
                             for (const auto& telescope : turntable["telescope"]) {
                                 if (telescope["depth"].as<std::string>() == depth_key) {
                                     telescope_pos_mm = telescope["length_mm"].as<int>();
@@ -414,20 +415,20 @@ class MoveLiftNode : public StatefulActionNode {
             return {
                 InputPort<double>("lift_target_position_m"),
                 OutputPort<double>("current_lift_position_m"),
-                OutputPort<int>("error_code"),
-                OutputPort<std::string>("error_msg")
+                OutputPort<int>("lift_error_code"),
+                OutputPort<std::string>("lift_error_msg")
             };
         }
 
         NodeStatus onStart() override {
-            int error_code = 0;
-            std::string error_msg = "Success";
+            int lift_error_code = 0;
+            std::string lift_error_msg = "Success";
             if (!getInput("lift_target_position_m", lift_target_pos_)) {
-                error_code = 1;
-                error_msg = "Missing lift_target_position_m";
-                setOutput("error_code", error_code);
-                setOutput("error_msg", error_msg);
-                std::cout << "[Action] MoveLift failed: " << error_msg << std::endl;
+                lift_error_code = 1;
+                lift_error_msg = "Missing lift_target_position_m";
+                setOutput("lift_error_code", lift_error_code);
+                setOutput("lift_error_msg", lift_error_msg);
+                std::cout << "[Action] MoveLift failed: " << lift_error_msg << std::endl;
                 return NodeStatus::FAILURE;
             }
             start_time_ = std::chrono::steady_clock::now();
@@ -440,8 +441,8 @@ class MoveLiftNode : public StatefulActionNode {
             auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
             if (elapsed >= std::chrono::seconds(3)) {
                 setOutput("current_lift_position_m", lift_target_pos_);
-                setOutput("error_code", 0);
-                setOutput("error_msg", "Success");
+                setOutput("lift_error_code", 0);
+                setOutput("lift_error_msg", "Success");
                 bt_logic_->current_positions_["current_lift_pos"] = std::to_string(lift_target_pos_);
                 std::cout << "[Action] MoveLift reached target: " << lift_target_pos_ << " m" << std::endl;
                 return NodeStatus::SUCCESS;
@@ -474,20 +475,20 @@ class MoveTelescopeNode : public StatefulActionNode {
                 InputPort<int>("telescope_target_position_mm"),
                 InputPort<std::string>("control_mode"),
                 OutputPort<int>("current_telescope_position_mm"),
-                OutputPort<int>("error_code"),
-                OutputPort<std::string>("error_msg")
+                OutputPort<int>("telescope_error_code"),
+                OutputPort<std::string>("telescope_error_msg")
             };
         }
 
         NodeStatus onStart() override {
-            int error_code = 0;
-            std::string error_msg = "Success";
+            int telescope_error_code = 0;
+            std::string telescope_error_msg = "Success";
             if (!getInput("telescope_target_position_mm", telescope_target_pos_)) {
-                error_code = 1;
-                error_msg = "Missing telescope_target_position_mm";
-                setOutput("error_code", error_code);
-                setOutput("error_msg", error_msg);
-                std::cout << "[Action] MoveTelescope failed: " << error_msg << std::endl;
+                telescope_error_code = 1;
+                telescope_error_msg = "Missing telescope_target_position_mm";
+                setOutput("telescope_error_code", telescope_error_code);
+                setOutput("telescope_error_msg", telescope_error_msg);
+                std::cout << "[Action] MoveTelescope failed: " << telescope_error_msg << std::endl;
                 return NodeStatus::FAILURE;
             }
             getInput("control_mode", mode_);
@@ -501,8 +502,8 @@ class MoveTelescopeNode : public StatefulActionNode {
             auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
             if (elapsed >= std::chrono::seconds(3)) {
                 setOutput("current_telescope_position_mm", telescope_target_pos_);
-                setOutput("error_code", 0);
-                setOutput("error_msg", "Success");
+                setOutput("telescope_error_code", 0);
+                setOutput("telescope_error_msg", "Success");
                 bt_logic_->current_positions_["current_telescope_pos"] = std::to_string(telescope_target_pos_);
                 std::cout << "[Action] MoveTelescope reached target: " << telescope_target_pos_ << " mm (" << mode_ << ")" << std::endl;
                 return NodeStatus::SUCCESS;
@@ -533,22 +534,22 @@ class MoveTurntableNode : public StatefulActionNode {
 
         static PortsList providedPorts() {
             return {
-                InputPort<std::string>("turntable_target_position"),
-                OutputPort<std::string>("current_turntable_position"),
-                OutputPort<int>("error_code"),
-                OutputPort<std::string>("error_msg")
+                InputPort<int>("turntable_target_position"),
+                OutputPort<int>("current_turntable_position"),
+                OutputPort<int>("turntable_error_code"),
+                OutputPort<std::string>("turntable_error_msg")
             };
         }
 
         NodeStatus onStart() override {
-            int error_code = 0;
-            std::string error_msg = "Success";
+            int turntable_error_code = 0;
+            std::string turntable_error_msg = "Success";
             if (!getInput("turntable_target_position", turntable_target_pos_)) {
-                error_code = 1;
-                error_msg = "Missing turntable_target_position";
-                setOutput("error_code", error_code);
-                setOutput("error_msg", error_msg);
-                std::cout << "[Action] MoveTurntable failed: " << error_msg << std::endl;
+                turntable_error_code = 1;
+                turntable_error_msg = "Missing turntable_target_position";
+                setOutput("turntable_error_code", turntable_error_code);
+                setOutput("turntable_error_msg", turntable_error_msg);
+                std::cout << "[Action] MoveTurntable failed: " << turntable_error_msg << std::endl;
                 return NodeStatus::FAILURE;
             }
             start_time_ = std::chrono::steady_clock::now();
@@ -561,8 +562,8 @@ class MoveTurntableNode : public StatefulActionNode {
             auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
             if (elapsed >= std::chrono::seconds(3)) {
                 setOutput("current_turntable_position", turntable_target_pos_);
-                setOutput("error_code", 0);
-                setOutput("error_msg", "Success");
+                setOutput("turntable_error_code", 0);
+                setOutput("turntable_error_msg", "Success");
                 bt_logic_->current_positions_["current_turntable_pos"] = turntable_target_pos_;
                 std::cout << "[Action] MoveTurntable reached target: " << turntable_target_pos_ << std::endl;
                 return NodeStatus::SUCCESS;
@@ -577,7 +578,7 @@ class MoveTurntableNode : public StatefulActionNode {
     private:
         std::string turntable_target_pos_;
         std::chrono::steady_clock::time_point start_time_;
-        BTLogic* bt_logic_;
+        BTLogic* bt_logic_; 
         friend class BTLogic;
     };
 
@@ -594,20 +595,20 @@ class MoveForksNode : public StatefulActionNode {
             return {
                 InputPort<double>("fork_position_deg"),
                 OutputPort<double>("current_fork_position_deg"),
-                OutputPort<int>("error_code"),
-                OutputPort<std::string>("error_msg")
+                OutputPort<int>("forks_error_code"),
+                OutputPort<std::string>("forks_error_msg")
             };
         }
 
         NodeStatus onStart() override {
-            int error_code = 0;
-            std::string error_msg = "Success";
+            int forks_error_code = 0;
+            std::string forks_error_msg = "Success";
             if (!getInput("fork_position_deg", fork_target_pos_)) {
-                error_code = 1;
-                error_msg = "Missing fork_position_deg";
-                setOutput("error_code", error_code);
-                setOutput("error_msg", error_msg);
-                std::cout << "[Action] MoveForks failed: " << error_msg << std::endl;
+                forks_error_code = 1;
+                forks_error_msg = "Missing fork_position_deg";
+                setOutput("forks_error_code", forks_error_code);
+                setOutput("forks_error_msg", forks_error_msg);
+                std::cout << "[Action] MoveForks failed: " << forks_error_msg << std::endl;
                 return NodeStatus::FAILURE;
             }
             start_time_ = std::chrono::steady_clock::now();
@@ -620,8 +621,8 @@ class MoveForksNode : public StatefulActionNode {
             auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
             if (elapsed >= std::chrono::seconds(3)) {
                 setOutput("current_fork_position_deg", fork_target_pos_);
-                setOutput("error_code", 0);
-                setOutput("error_msg", "Success");
+                setOutput("forks_error_code", 0);
+                setOutput("forks_error_msg", "Success");
                 bt_logic_->current_positions_["current_fork_pos"] = std::to_string(fork_target_pos_);
                 std::cout << "[Action] MoveForks reached target: " << fork_target_pos_ << " deg" << std::endl;
                 return NodeStatus::SUCCESS;

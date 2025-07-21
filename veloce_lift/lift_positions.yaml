@@ -124,7 +124,7 @@ lift_control:
           telescope: 
             - {depth: 1, length_mm: 700, fork_angle_deg: 90}
         - direction: Right
-          lift_position_mm: 2800
+          lift_position_mm: 2800  
           angle_deg: 90
           telescope: 
             - {depth: 1, length_mm: 500, fork_angle_deg: 90}

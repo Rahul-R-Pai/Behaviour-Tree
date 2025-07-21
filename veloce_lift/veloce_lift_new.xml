@@ -5,35 +5,88 @@
     <AlwaysSuccess/>
   </BehaviorTree>
 
-  <BehaviorTree ID="DoubleDeep">
-    <Fallback>
-      <LiftPosition lift_position_m="{target_lift_pos}"/>
-      <Sequence>
-        <MoveLift lift_target_position_m="{target_lift_pos}"
-                  error_code="{lift_error_code}"
-                  error_msg="{lift_error_msg}"/>
+  <BehaviorTree ID="Exe_Pick">
+    <Sequence>
+      <AsyncSequence>
         <Fallback>
-          <TurntablePosition turntable_position="home"/>
-          <Sequence>
-            <MoveTurntable turntable_target_position="{turntable_dir}"
-                           error_code="{turntable_error_code}"
-                           error_msg="{turntable_error_msg}"/>
-            <SubTree ID="3StageCycle"
-                     _autoremap="true"/>
-            <Fallback>
-              <LiftPosition lift_position_m="0.5"/>
-              <MoveLift lift_target_position_m="1.0"
-                        error_code="{lift_error_code}"
-                        error_msg="{lift_error_msg}"/>
-            </Fallback>
-            <MoveTelescope telescope_target_position_mm="{target_telescope_pos}"
-                           control_mode="{telescope_mode}"
-                           error_code="{telescope_error_code}"
-                           error_msg="{telescope_error_msg}"/>
-          </Sequence>
+          <LiftPosition lift_position_m="{target_lift_pos}"/>
+          <MoveLift lift_target_position_m="{target_lift_pos}"
+                    current_lift_position_m="{current_lift_position_m}"
+                    error_code="{lift_error_code}"
+                    error_msg="{lift_error_msg}"/>
         </Fallback>
-      </Sequence>
-    </Fallback>
+        <Fallback>
+          <TurntablePosition turntable_position="{target_turntable_pos}"/>
+          <MoveTurntable turntable_target_position="{target_turntable_pos}"
+                         current_turntable_position="{current_turntable_position}"
+                         error_code="{turntable_error_code}"
+                         error_msg="{turntable_error_msg}"/>
+        </Fallback>
+      </AsyncSequence>
+      <IfThenElse>
+        <TurntablePosition turntable_position="Middle"/>
+        <Sequence>
+          <MoveTelescope telescope_target_position_mm="{target_telescope_pos}"
+                         control_mode="position"
+                         current_telescope_position_mm="{current_telescope_position_mm}"
+                         error_code="{telescope_error_code}"
+                         error_msg="{telescope_error_msg}"/>
+          <RackSensors/>
+        </Sequence>
+        <Sequence>
+          <SubTree ID="3StageCycle"
+                   _autoremap="true"/>
+          <Fallback>
+            <LiftPosition lift_position_m="{target_lift_pos}"/>
+            <MoveLift lift_target_position_m="{target_lift_pos}"
+                      current_lift_position_m="{current_lift_position_m}"
+                      error_code="{lift_error_code}"
+                      error_msg="{lift_error_msg}"/>
+          </Fallback>
+          <RackSensors/>
+          <MoveTelescope telescope_target_position_mm="{target_telescope_pos}"
+                         control_mode="position"
+                         current_telescope_position_mm="{current_telescope_position_mm}"
+                         error_code="{telescope_error_code}"
+                         error_msg="{telescope_error_msg}"/>
+        </Sequence>
+      </IfThenElse>
+      <Fallback>
+        <BinClearSensors/>
+        <Sequence>
+          <MoveTelescope telescope_target_position_mm="{target_telescope_pos}"
+                         control_mode="speed"
+                         current_telescope_position_mm="{current_telescope_position_mm}"
+                         error_code="{telescope_error_code}"
+                         error_msg="{telescope_error_msg}"/>
+          <Fallback>
+            <Inverter>
+              <BinClearSensors/>
+            </Inverter>
+            <SetBlackboard value="true"
+                           output_key="tote_out_of_reach"/>
+          </Fallback>
+        </Sequence>
+      </Fallback>
+      <Fallback>
+        <Inverter>
+          <ToteOutOfReach tote_out_of_reach="{tote_out_of_reach}"/>
+        </Inverter>
+        <Sequence>
+          <MoveForks fork_position_deg="{target_fork_pos}"
+                     current_fork_position_deg="{current_fork_position_deg}"
+                     error_code="{forks_error_code}"
+                     error_msg="{forks_error_msg}"/>
+          <SetBlackboard value="true"
+                         output_key="picked"/>
+        </Sequence>
+      </Fallback>
+      <MoveTelescope telescope_target_position_mm="0"
+                     control_mode="position"
+                     current_telescope_position_mm="{current_telescope_position_mm}"
+                     error_code="{telescope_error_code}"
+                     error_msg="{telescope_error_msg}"/>
+    </Sequence>
   </BehaviorTree>
 
   <BehaviorTree ID="MainTree">
@@ -41,6 +94,7 @@
       <Fallback>
         <ForkPosition fork_position_deg="{target_fork_pos}"/>
         <MoveForks fork_position_deg="{target_fork_pos}"
+                   current_fork_position_deg="{current_fork_position_deg}"
                    error_code="{forks_error_code}"
                    error_msg="{forks_error_msg}"/>
       </Fallback>
@@ -50,21 +104,16 @@
           <BinPresenceSensors/>
           <MoveTelescope telescope_target_position_mm="0"
                          control_mode="position"
+                         current_telescope_position_mm="{current_telescope_position_mm}"
                          error_code="{telescope_error_code}"
                          error_msg="{telescope_error_msg}"/>
           <IfThenElse>
             <TelescopePosition telescope_position_mm="{target_telescope_pos}"/>
-            <Switch2 case_1="single"
-                     case_2="double"
-                     variable="{deep}">
-              <SubTree ID="SingleDeep"
-                       _autoremap="true"/>
-              <SubTree ID="DoubleDeep"
-                       _autoremap="true"/>
-              <AlwaysFailure/>
-            </Switch2>
+            <SubTree ID="Exe_Pick"
+                     _autoremap="true"/>
             <MoveTelescope telescope_target_position_mm="{target_telescope_pos}"
                            control_mode="speed"
+                           current_telescope_position_mm="{current_telescope_position_mm}"
                            error_code="{telescope_error_code}"
                            error_msg="{telescope_error_msg}"/>
           </IfThenElse>
@@ -72,6 +121,7 @@
         <Sequence>
           <MoveTelescope telescope_target_position_mm="{target_telescope_pos}"
                          control_mode="speed"
+                         current_telescope_position_mm="{current_telescope_position_mm}"
                          error_code="{telescope_error_code}"
                          error_msg="{telescope_error_msg}"/>
         </Sequence>
@@ -79,89 +129,7 @@
     </Sequence>
   </BehaviorTree>
 
-  <BehaviorTree ID="SingleDeep">
-    <Fallback>
-      <LiftPosition lift_position_m="{target_lift_pos}"/>
-      <Sequence>
-        <MoveLift lift_target_position_m="{target_lift_pos}"
-                  error_code="{lift_error_code}"
-                  error_msg="{lift_error_msg}"/>
-        <Fallback>
-          <TurntablePosition turntable_position="home"/>
-          <Switch2 case_1="home"
-                   case_2="left"
-                   variable="{turntable_dir}">
-            <MoveTurntable turntable_target_position="home"
-                           error_code="{turntable_error_code}"
-                           error_msg="{turntable_error_msg}"/>
-            <MoveTurntable turntable_target_position="{turntable_dir}"
-                           error_code="{turntable_error_code}"
-                           error_msg="{turntable_error_msg}"/>
-          </Switch2>
-        </Fallback>
-        <Switch2 case_1="home"
-                 case_2="left"
-                 variable="{turntable_dir}">
-          <Sequence>
-            <MoveTelescope telescope_target_position_mm="1000"
-                           control_mode="position"
-                           error_code="{telescope_error_code}"
-                           error_msg="{telescope_error_msg}"/>
-            <RackSensors/>
-          </Sequence>
-          <Sequence>
-            <SubTree ID="3StageCycle"
-                     _autoremap="true"/>
-            <Fallback>
-              <LiftPosition lift_position_m="0.5"/>
-              <MoveLift lift_target_position_m="0.5"
-                        error_code="{lift_error_code}"
-                        error_msg="{lift_error_msg}"/>
-            </Fallback>
-            <RackSensors/>
-            <MoveTelescope telescope_target_position_mm="1000"
-                           control_mode="position"
-                           error_code="{telescope_error_code}"
-                           error_msg="{telescope_error_msg}"/>
-          </Sequence>
-          <AlwaysFailure/>
-        </Switch2>
-        <Fallback>
-          <BinClearSensors/>
-          <Sequence>
-            <MoveTelescope telescope_target_position_mm="{target_telescope_pos}"
-                           control_mode="speed"
-                           error_code="{telescope_error_code}"
-                           error_msg="{telescope_error_msg}"/>
-            <Fallback>
-              <Inverter>
-                <BinClearSensors/>
-              </Inverter>
-              <SetBlackboard value="true"
-                             output_key="tote_out_of_reach"/>
-            </Fallback>
-          </Sequence>
-        </Fallback>
-        <Fallback>
-          <Inverter>
-            <ToteOutOfReach tote_out_of_reach="{tote_out_of_reach}"/>
-          </Inverter>
-          <Sequence>
-            <MoveForks fork_position_deg="{target_fork_pos}"
-                       error_code="{forks_error_code}"
-                       error_msg="{forks_error_msg}"/>
-            <SetBlackboard value="true"
-                           output_key="picked"/>
-          </Sequence>
-        </Fallback>
-        <MoveTelescope telescope_target_position_mm="0"
-                       control_mode="position"
-                       error_code="{telescope_error_code}"
-                       error_msg="{telescope_error_msg}"/>
-      </Sequence>
-    </Fallback>
-  </BehaviorTree>
-
+  <!-- Description of Node Models (used by Groot) -->
   <TreeNodesModel>
     <Condition ID="BinClearSensors"
                editable="true"/>
@@ -210,7 +178,7 @@
                   default="position"
                   type="string"/>
       <output_port name="current_telescope_position_mm"
-                   type="int"/>
+                  type="int"/>
       <output_port name="error_code"
                    type="int"/>
       <output_port name="error_msg"
