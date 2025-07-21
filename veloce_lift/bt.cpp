@@ -104,6 +104,7 @@ public:
                     return {false, "Invalid lift_level: use 1-8"};
                 }
                 it->value = value;
+                blackboard_->set(key, val);
             } catch (const std::exception&) {
                 return {false, "Invalid int value"};
             }
@@ -112,18 +113,22 @@ public:
                 return {false, "Invalid deep value: use 'single', 'double'"};
             }
             it->value = value;
+            blackboard_->set(key, value); 
         } else if (it->type == "string" && key == "turntable_dir") {
             if (value != "Left" && value != "Middle" && value != "Right") {
                 return {false, "Invalid turntable_dir: use 'Left', 'Middle', 'Right'"};
             }
             it->value = value;
+            blackboard_->set(key, value); 
         } else if (it->type == "bool") {
             if (value != "true" && value != "false" && value != "1" && value != "0") {
                 return {false, "Invalid bool value: use 'true', 'false'"};
             }
             it->value = value;
+            blackboard_->set(key, (value == "true" || value == "1")); 
         } else {
             it->value = value;
+            blackboard_->set(key, value);
         }
         return {true, ""};
     }
@@ -160,19 +165,6 @@ public:
                       << ", fork_pos_deg=" << fork_pos_deg << std::endl;
         } else {
             std::cout << "[Error] Failed to load YAML parameters" << std::endl;
-        }
-
-        for (const auto& val : editable_) {
-            try {
-                if (val.type == "string")
-                    blackboard_->set(val.key, val.value);
-                else if (val.type == "bool")
-                    blackboard_->set(val.key, (val.value == "true" || val.value == "1"));
-                else if (val.type == "int")
-                    blackboard_->set(val.key, std::stoi(val.value));
-            } catch (const std::exception& e) {
-                std::cout << "Error setting blackboard key " << val.key << ": " << e.what() << std::endl;
-            }
         }
 
         NodeStatus status = tree_.tickWhileRunning();
