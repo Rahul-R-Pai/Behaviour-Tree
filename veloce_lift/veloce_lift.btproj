@@ -15,27 +15,27 @@
         <Action ID="MoveForks" editable="true">
             <input_port name="fork_position_deg" default="0.0" type="double"/>
             <output_port name="current_fork_position_deg" type="double"/>
-            <output_port name="error_code" type="int"/>
-            <output_port name="error_msg" type="string"/>
+            <output_port name="forks_error_code" type="int"/>
+            <output_port name="forks_error_msg" type="string"/>
         </Action>
         <Action ID="MoveLift" editable="true">
-            <input_port name="lift_target_position_m" type="double"/>
+            <input_port name="target_lift_position_m" type="double"/>
             <output_port name="current_lift_position_m" type="double"/>
-            <output_port name="error_code" type="int"/>
-            <output_port name="error_msg" type="string"/>
+            <output_port name="lift_error_code" type="int"/>
+            <output_port name="lift_error_msg" type="string"/>
         </Action>
         <Action ID="MoveTelescope" editable="true">
-            <input_port name="telescope_target_position_mm" type="int"/>
+            <input_port name="target_telescope_position_mm" type="int"/>
             <input_port name="control_mode" default="position" type="string"/>
             <output_port name="current_telescope_position_mm" type="int"/>
-            <output_port name="error_code" type="int"/>
-            <output_port name="error_msg" type="string"/>
+            <output_port name="telescope_error_code" type="int"/>
+            <output_port name="telescope_error_msg" type="string"/>
         </Action>
         <Action ID="MoveTurntable" editable="true">
-            <input_port name="turntable_target_position" type="string"/>
-            <output_port name="current_turntable_position" type="string"/>
-            <output_port name="error_code" type="int"/>
-            <output_port name="error_msg" type="string"/>
+            <input_port name="target_turntable_position" type="double"/>
+            <output_port name="current_turntable_position" type="double"/>
+            <output_port name="turntable_error_code" type="int"/>
+            <output_port name="turntable_error_msg" type="string"/>
         </Action>
         <Condition ID="RackSensors" editable="true"/>
         <Condition ID="TelescopeHomeSensors"/>

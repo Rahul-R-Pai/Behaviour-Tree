@@ -43,6 +43,11 @@
             border-bottom: 2px solid #e0e7ff;
             padding-bottom: 5px;
         }
+        h3 {
+            color: #2d3748;
+            font-size: 1.2em;
+            margin: 15px 0 10px 0;
+        }
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -66,15 +71,17 @@
             height: 20px;
             cursor: pointer;
         }
-        input[type="text"] {
+        select {
             padding: 8px;
             border: 1px solid #cbd5e1;
             border-radius: 5px;
-            width: 100px;
+            width: 120px;
             font-size: 0.9em;
+            background: #fff;
+            cursor: pointer;
             transition: border-color 0.2s;
         }
-        input[type="text"]:focus {
+        select:focus {
             border-color: #1e40af;
             outline: none;
         }
@@ -116,6 +123,9 @@
             .grid {
                 grid-template-columns: 1fr;
             }
+            select {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -128,7 +138,10 @@
         </div>
         <div class="section">
             <h2>Values</h2>
-            <div id="values" class="grid"></div>
+            <h3>Shuttle Command</h3>
+            <div id="shuttle-command" class="grid"></div>
+            <h3>Additional Variables</h3>
+            <div id="additional-variables" class="grid"></div>
         </div>
         <div class="section">
             <button onclick="tickTree()">Tick Tree</button>
@@ -141,12 +154,56 @@
                 const response = await fetch('/api/status');
                 if (!response.ok) throw new Error('Failed to fetch status');
                 const data = await response.json();
+
+                // Populate sensors
                 document.getElementById('sensors').innerHTML = Object.entries(data.sensors)
                     .map(([key, value]) => `<div class="sensor-item"><label><input type="checkbox" ${value ? 'checked' : ''} onclick="toggleSensor('${key}')">${key}</label></div>`)
                     .join('');
-                document.getElementById('values').innerHTML = Object.entries(data.values)
-                    .map(([key, value]) => `<div class="value-item"><label>${key}: <input type="text" value="${value}" onblur="updateValue('${key}', this.value)"></label></div>`)
-                    .join('');
+
+                // Populate shuttle command values (lift_level, deep, turntable_dir)
+                const shuttleCommand = {
+                    'lift_level': ['1', '2', '3', '4', '5', '6', '7', '8'],
+                    'deep': ['single', 'double'],
+                    'turntable_dir': ['Left', 'Middle', 'Right']
+                };
+                document.getElementById('shuttle-command').innerHTML = Object.entries(data.values)
+                    .filter(([key]) => ['lift_level', 'deep', 'turntable_dir'].includes(key))
+                    .map(([key, value]) => {
+                        const options = shuttleCommand[key] || [];
+                        const isValid = options.includes(value);
+                        return `
+                            <div class="value-item">
+                                <label>${key}: 
+                                    <select onchange="updateValue('${key}', this.value)">
+                                        ${options.map(opt => `<option value="${opt}" ${opt === value ? 'selected' : ''}>${opt}</option>`).join('')}
+                                        ${!isValid ? `<option value="${value}" selected>${value} (invalid)</option>` : ''}
+                                    </select>
+                                </label>
+                            </div>`;
+                    }).join('');
+
+                // Populate additional variables (tote_out_of_reach, picked, telescope_mode)
+                const additionalVars = {
+                    'tote_out_of_reach': ['true', 'false'],
+                    'picked': ['true', 'false'],
+                    'telescope_mode': ['position', 'velocity']
+                };
+                document.getElementById('additional-variables').innerHTML = Object.entries(data.values)
+                    .filter(([key]) => ['tote_out_of_reach', 'picked', 'telescope_mode'].includes(key))
+                    .map(([key, value]) => {
+                        const options = additionalVars[key] || [];
+                        const isValid = options.includes(value);
+                        return `
+                            <div class="value-item">
+                                <label>${key}: 
+                                    <select onchange="updateValue('${key}', this.value)">
+                                        ${options.map(opt => `<option value="${opt}" ${opt === value ? 'selected' : ''}>${opt}</option>`).join('')}
+                                        ${!isValid ? `<option value="${value}" selected>${value} (invalid)</option>` : ''}
+                                    </select>
+                                </label>
+                            </div>`;
+                    }).join('');
+
             } catch (error) {
                 console.error('Fetch status error:', error);
                 document.getElementById('output').textContent = 'Error fetching status: ' + error.message;
@@ -177,7 +234,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key, value })
                 });
-                if (!response.ok) throw new Error('Failed to update value');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to update value');
+                }
                 await fetchStatus();
             } catch (error) {
                 console.error('Update value error:', error);
