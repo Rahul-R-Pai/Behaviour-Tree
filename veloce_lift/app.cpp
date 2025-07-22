@@ -100,6 +100,7 @@ int main() {
         response["values"] = std::move(values_json);
         return crow::response(response);
     });
+    
 
     app.port(8081).multithreaded().run();
     delete bt_logic;

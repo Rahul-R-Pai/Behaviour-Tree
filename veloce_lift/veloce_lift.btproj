@@ -37,7 +37,11 @@
             <output_port name="turntable_error_code" type="int"/>
             <output_port name="turntable_error_msg" type="string"/>
         </Action>
+        <Condition ID="Operation_Complete" editable="true">
+            <input_port name="operation_status"/>
+        </Condition>
         <Condition ID="RackSensors" editable="true"/>
+        <Action ID="Scan_Barcode" editable="true"/>
         <Condition ID="TelescopeHomeSensors"/>
         <Condition ID="TelescopePosition" editable="true">
             <input_port name="telescope_position_mm" type="int"/>

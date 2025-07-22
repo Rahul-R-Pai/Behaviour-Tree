@@ -41,7 +41,7 @@ public:
         blackboard_->set("deep", std::string("single"));
         blackboard_->set("telescope_mode", std::string("position"));
         blackboard_->set("tote_out_of_reach", false);
-        blackboard_->set("picked", false);
+        blackboard_->set("operation_status", false);
         blackboard_->set("target_lift_pos", 0.0);
         blackboard_->set("target_turntable_pos", 0.0);
         blackboard_->set("target_telescope_pos", 0);
@@ -171,7 +171,7 @@ public:
         std::cout << "[Debug] Tree status: " << status << std::endl;
 
         return console_capture_->getOutput();
-    }
+    }   
 
 private:
     BehaviorTreeFactory factory_;
@@ -203,7 +203,7 @@ private:
         {"turntable_dir", "string", "Middle"},
         {"deep", "string", "single"},
         {"tote_out_of_reach", "bool", "false"},
-        {"picked", "bool", "false"},
+        {"operation_status", "bool", "false"},
         {"telescope_mode", "string", "position"}
     };
 
@@ -230,11 +230,15 @@ private:
                                         {InputPort<double>("fork_position_deg"), OutputPort<double>("fork_position_deg")});
         factory_.registerSimpleCondition("TelescopePosition", [this](TreeNode& node) { return this->CheckTelescopePosition(node); },
                                         {InputPort<int>("telescope_position_mm")});
+        factory_.registerSimpleCondition("Operation_Complete", [this](TreeNode& node) { return this->CheckOperationComplete(node); },
+                                        {InputPort<int>("operation_status")});
+
 
         factory_.registerNodeType<MoveLiftNode>("MoveLift");
         factory_.registerNodeType<MoveTelescopeNode>("MoveTelescope");
         factory_.registerNodeType<MoveTurntableNode>("MoveTurntable");
         factory_.registerNodeType<MoveForksNode>("MoveForks");
+        factory_.registerNodeType<ScanBarcodeNode>("Scan_Barcode");
 
   }
 
@@ -398,6 +402,19 @@ private:
                 << ", target=" << target_telescope_pos << ", equal=" << is_equal << std::endl;
         conditions_["TelescopePosition"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
         return conditions_["TelescopePosition"];
+    }
+
+    NodeStatus CheckOperationComplete(TreeNode& node) {
+        bool operation_status;
+        if (!node.getInput("operation_status", operation_status)) {
+            std::cout << "[Condition] OperationComplete: Missing operation_status" << std::endl;
+            return NodeStatus::FAILURE;
+        }
+        bool is_equal = (operation_status == true);
+        std::cout << "[Condition] OperationComplete checking: current=" << operation_status
+                << ", target=" << true << ", equal=" << is_equal << std::endl;
+        conditions_["OperationComplete"] = is_equal ? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+        return conditions_["OperationComplete"];
     }
 
 class MoveLiftNode : public StatefulActionNode {
@@ -640,8 +657,50 @@ class MoveForksNode : public StatefulActionNode {
         friend class BTLogic;
     };
 
+class ScanBarcodeNode : public StatefulActionNode {
+    public:
+        ScanBarcodeNode(const std::string& name, const NodeConfig& config)
+            : StatefulActionNode(name, config), start_time_(std::chrono::steady_clock::now()) {
+            if (!config.blackboard->get("bt_logic", bt_logic_)) {
+                throw std::runtime_error("ScanBarcodeNode: Failed to retrieve bt_logic from blackboard");
+            }
+        }
+
+        static PortsList providedPorts() {
+            return {
+            };
+        }
+
+        NodeStatus onStart() override {
+            start_time_ = std::chrono::steady_clock::now();
+            std::cout << "[Action] ScanBarcode started" << std::endl;
+            return NodeStatus::RUNNING;
+        }
+
+        NodeStatus onRunning() override {
+            auto now = std::chrono::steady_clock::now();
+            auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_);
+            if (elapsed >= std::chrono::seconds(3)) {
+                std::cout << "[Action] ScanBarcode completed" << std::endl;
+                return NodeStatus::SUCCESS;
+            }
+            return NodeStatus::RUNNING;
+        }
+
+        void onHalted() override {
+            std::cout << "[Action] ScanBarcode halted" << std::endl;
+        }
+
+    private:
+        std::chrono::steady_clock::time_point start_time_;
+        BTLogic* bt_logic_;
+        friend class BTLogic;
+    };
+
+
     friend class MoveLiftNode;
     friend class MoveTelescopeNode;
     friend class MoveTurntableNode;
     friend class MoveForksNode;
+    friend class ScanBarcodeNode;
 };

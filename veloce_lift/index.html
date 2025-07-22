@@ -155,8 +155,16 @@
                 if (!response.ok) throw new Error('Failed to fetch status');
                 const data = await response.json();
 
-                // Populate sensors
+                // Populate sensors, excluding "Check" condition nodes
+                const excludedSensors = [
+                    'CheckToteOutOfReach',
+                    'CheckTurntablePosition',
+                    'CheckLiftPosition',
+                    'CheckForkPosition',
+                    'CheckTelescopePosition'
+                ];
                 document.getElementById('sensors').innerHTML = Object.entries(data.sensors)
+                    .filter(([key]) => !excludedSensors.includes(key))
                     .map(([key, value]) => `<div class="sensor-item"><label><input type="checkbox" ${value ? 'checked' : ''} onclick="toggleSensor('${key}')">${key}</label></div>`)
                     .join('');
 
@@ -182,14 +190,14 @@
                             </div>`;
                     }).join('');
 
-                // Populate additional variables (tote_out_of_reach, picked, telescope_mode)
+                // Populate additional variables (tote_out_of_reach, operation_status, telescope_mode)
                 const additionalVars = {
                     'tote_out_of_reach': ['true', 'false'],
-                    'picked': ['true', 'false'],
+                    'operation_status': ['true', 'false'],
                     'telescope_mode': ['position', 'velocity']
                 };
                 document.getElementById('additional-variables').innerHTML = Object.entries(data.values)
-                    .filter(([key]) => ['tote_out_of_reach', 'picked', 'telescope_mode'].includes(key))
+                    .filter(([key]) => ['tote_out_of_reach', 'operation_status', 'telescope_mode'].includes(key))
                     .map(([key, value]) => {
                         const options = additionalVars[key] || [];
                         const isValid = options.includes(value);
